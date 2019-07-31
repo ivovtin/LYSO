@@ -10,18 +10,27 @@ TF1* Init_Aprox(Int_t num, const char* name) {
 void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t y2) {
     gStyle -> SetPalette(1);
 
-    TString fpixel = TString("mcp" + name + ".root");
+    TString inputDir="/home/chizhik/root/2019-06-07_LYSO/";
+    TString outDir="/home/ovtin/development/LYSO/out/";
+
+    char s[100];
+    // printing current working directory 
+    printf("%s\n", getcwd(s, 100));    
+    chdir(inputDir); 
+    printf("%s\n", getcwd(s, 100)); 
+
+    TString fpixel = TString(inputDir + "mcp" + name + ".root");
     cout << fpixel << endl;
 
     TFile* f1 = new TFile(fpixel, "read");
     TTree* exbeamdata = (TTree*)f1 -> Get("exbeamdata");
-	exbeamdata -> Print();
+    exbeamdata -> Print();
 
-    TString fdaq = TString("daq" + name + ".root");
+    TString fdaq = TString(inputDir + "daq" + name + ".root");
     cout << fdaq << endl;
-    TString fgem = TString("gem" + name + ".root");
+    TString fgem = TString(inputDir + "gem" + name + ".root");
     cout << fgem << endl;
-    TString fsipm = TString("sipm" + name + ".root");
+    TString fsipm = TString(inputDir + "sipm" + name + ".root");
     cout << fsipm << endl;
     TString y_boundLeft;
     y_boundLeft.Form("%d", y1);
@@ -294,9 +303,9 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     CanvGeom -> Update();
     CanvTimeDistribution -> Update(); 
     
-    CanvTimeDistribution -> SaveAs(name + "(" + y_boundLeft + " - " + y_boundRight  + ") _CanvTimeDistribution.root");
-    CanvAmp -> SaveAs(name + "(" + y_boundLeft + " - " + y_boundRight  + ") _CanvAmp.root");
-    CanvGeom -> SaveAs(name + "(" + y_boundLeft + " - " + y_boundRight  + ") _CanvGeom.root");
+    CanvTimeDistribution -> SaveAs(outDir + name + "(" + y_boundLeft + " - " + y_boundRight  + ")_CanvTimeDistribution.root");
+    CanvAmp -> SaveAs(outDir + name + "(" + y_boundLeft + " - " + y_boundRight  + ")_CanvAmp.root");
+    CanvGeom -> SaveAs(outDir + name + "(" + y_boundLeft + " - " + y_boundRight  + ")_CanvGeom.root");
 /*
     GaussBKG -> SetParLimits(0, 1, 100);
     GaussBKG -> SetParLimits(1, 5, 10);
