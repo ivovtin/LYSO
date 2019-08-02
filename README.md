@@ -8,8 +8,12 @@ You should create your own branch, then do pull requests when you are done. <br 
 - Base script is plotxy_new.C <br />
   Example: <br />
   root -l <br /> 
-  root [0] .x plotxy_new.C("lyso30minus",100,0,0,23,26)
+  root [0] .x plotxy_new.C("lyso30minus",200,0,0,23,26) <br />
+  or <br />
+  root -l -q 'plotxy_new.C("lyso30minus",200,0,0,23,26)'
 
 - Script for create chain: <br />
   make_chain.C
 
+- Start tasks on batch system: <br />
+  ./run_batch.sh
