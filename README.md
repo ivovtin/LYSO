@@ -13,7 +13,7 @@ You should create your own branch, then do pull requests when you are done. <br 
   root -l -q 'plotxy_new.C("lyso30minus",200,0,0,23,26)'
 
 - Script for create chain: <br />
-  make_chain.C
+  root -l -q 'make_chain.C("/home/chizhik/root/2019-06-07_LYSO/sipmlyso30minus.list","test.root","exbeamdata")' <br />  
 
 - Start tasks on batch system: <br />
   ./run_batch.sh
