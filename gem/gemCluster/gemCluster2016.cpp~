@@ -1,0 +1,169 @@
+#include <string>
+#include <iostream>
+#include <memory>
+
+#include <unistd.h> //getopt
+
+#include <boost/foreach.hpp>
+
+
+#include <TFile.h>
+#include <TTree.h>
+#include <TH1F.h>
+
+#include <reconstruction/GEM/GemDetector.h>
+#include <TObjArray.h>
+#include <TClonesArray.h>
+
+using namespace std;
+using namespace gem;
+
+const char* progname = "gemCluster";
+const char* optstring = "ho:ai:f:";
+
+void Usage(int status) 
+{
+		cout << "Usage: " << progname << " [-a | -o output_file] input_file.root\n"
+		<< "Reconstructs GEM clusters\n" 
+		<< " -a           - add GEM reconstructed tree to the input ROOT file\n" 
+		<< " -o filename  - write GEM reconstructed tree to file (conflicts with -a), file is overwritten\n"
+		<< "If no -a or -o options are given write to the file gem_input_file.root\n";
+		
+		exit(status);
+}
+
+int main(int argc, char * argv[]) 
+{
+    progname = argv[0];
+	int opt;
+	bool inplace = false;
+	string outputFilename, inputFilename;
+	while((opt = getopt(argc, argv, optstring))!=-1) {
+		switch(opt) {
+			case 'o': outputFilename = optarg; break;
+			case 'a': inplace = true; break;
+			default:
+			    Usage(1);
+		}
+	}
+
+    if( argc-optind<=0 ) {
+    	cerr << progname << ": Input file is not specified" << endl;
+    	Usage(2);
+    }
+	inputFilename = argv[optind];
+
+	if (outputFilename.size() && inplace) {
+		cerr << progname << ": -a and -o options can't be used together." << endl;
+		return 3;
+	}
+
+	if (!inplace && !outputFilename.size()) {
+	    size_t pos = inputFilename.find_last_of('/');
+	    outputFilename = inputFilename;
+	    outputFilename.insert(pos!=string::npos?pos+1:0,"gem_");
+	}
+	
+	string openMode = inplace?"UPDATE":"READ";
+
+	TFile input(inputFilename.c_str(), openMode.c_str());
+	if (!input.IsOpen()) {
+		cerr << progname << ": Failed to open " << inputFilename << endl;
+		return 4;
+	}
+
+	TTree * pTree = dynamic_cast<TTree*>(input.Get("daq"));
+	if (!pTree) {
+		cerr << progname << ": No daq tree in file " << inputFilename << endl;
+		return 5;
+	}
+
+	Long64_t entries = pTree->GetEntries();
+	if (entries == 0) {
+		cerr << progname << ": No entries in the daq tree" << endl;
+		return 5;
+	}
+
+	GemEvent data;
+	if (pTree->SetBranchAddress("gem",&data) != 0) {
+		cerr << progname << ": 'gem' branch is absent in the input or has wrong type" << endl;
+		return 5;
+	}
+
+	pTree->SetBranchStatus("*", 0);
+	pTree->SetBranchStatus("gem", 1);
+
+    //Determine working frames in thin GEMs
+    TH1F *ha = new TH1F("ha","",64,0,64);
+    pTree->Draw("(Iteration$-5120)/640>>ha","Iteration$>=5120 && gem.amplitudes!=0","goff",1000);
+    ha->SetAxisRange(0,31.5);
+    UInt_t frame1 = ha->GetMaximumBin()-1;
+    ha->SetAxisRange(32,64);
+    UInt_t frame2 = ha->GetMaximumBin()-33;
+    cout << "frame1=" << frame1 << " frame2=" << frame2 << endl;
+
+    cout << "Reconstruct GEM clusters in file " << inputFilename << " and\n store to "
+         << outputFilename << "\n";
+
+	Detector* detectors[] = {
+		new gem::ThickDetector(0),
+		new gem::ThinDetector(10,frame1),
+		new gem::ThinDetector(11,frame2) };
+
+	TClonesArray allClusters("GemCluster");
+	TClonesArray detClusters("GemCluster",3);
+	allClusters.SetOwner(kTRUE);
+	detClusters.SetOwner(kTRUE);
+	TBranch *allClustersBranch = 0, *detClustersBranch = 0;
+
+	auto_ptr<TFile> output;
+	if (!inplace) {
+		output.reset(new TFile(outputFilename.c_str(), "RECREATE"));
+		if (!output->IsOpen()) {
+			cerr << progname << ": Failed to open " << outputFilename << " for writing" << endl;
+			return 4;
+		}
+	}
+    TTree * outTree = new TTree("gem", "Local 2D gem clusters.");
+	allClustersBranch = outTree->Branch("allClusters", &allClusters);
+	detClustersBranch = outTree->Branch("detClusters", &detClusters);
+
+
+	vector<LinearCluster> unbound;
+	for (Long64_t eventIdx = 0; eventIdx < entries; ++eventIdx) {
+		pTree->GetEvent(eventIdx);
+		allClusters.Clear();
+		detClusters.Clear();
+		unsigned ic=0, id=0;
+//		cout << "Event " << eventIdx << ". " << endl;
+		BOOST_FOREACH(Detector *d, detectors) {
+//			cout << "  Detector " << d->index() << ": " << flush;
+			vector<PlaneCluster> planeClusters = d->buildLocalClusters(data, unbound);
+//			cout << "Plane clusters: " << planeClusters.size() << endl;
+			GemCluster gemCluster;
+			gemCluster.detector = d->index();
+			if( !planeClusters.empty() )
+				planeClusters[0].save(gemCluster);
+			new (detClusters[id++]) GemCluster(gemCluster);
+			if( allClusters.GetSize()<=ic+planeClusters.size() ) allClusters.Expand(2*(ic+planeClusters.size()));
+			BOOST_FOREACH(PlaneCluster pCluster, planeClusters) {
+				pCluster.save(gemCluster);
+				assert(gemCluster.isValid());
+				new (allClusters[ic++]) GemCluster(gemCluster);
+			}
+		}
+//		cout << "Number of clusters: " << allClusters.GetEntries() << endl;
+//		allClustersBranch->Fill();
+//		detClustersBranch->Fill();
+	}
+	if (allClustersBranch->GetEntries() != entries || detClustersBranch->GetEntries() != entries) {
+		cerr << "Wrong count of branch entries" << endl;
+		return 5;
+	}
+	outTree->SetEntries(entries);
+	outTree->Write();
+
+    cout << entries << " entries processed\n";
+
+	return 0;
+}

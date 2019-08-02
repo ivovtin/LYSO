@@ -1,0 +1,31 @@
+#include "TrackFinder.h"
+#include <cmath>
+
+#include <TMath.h>
+#include <boost/foreach.hpp>
+
+using namespace std;
+
+typedef TrackFinder::Clusters Clusters;
+typedef TrackFinder::TrackWithClusters TrackWithClusters;
+
+
+
+
+void FussyRadonFinder::findTracks(const Clusters & clusters, std::vector<TrackWithClusters> & oTracks)
+{
+	vector<Track> rv;
+
+
+}
+
+FussyRadonFinder::FussyRadonFinder(Matcher & simulator): _simulator(simulator)
+{
+}
+
+double SimpleTrackMatcher::match(const Track & track, const Cluster & cluster)
+{
+	return TMath::Gaus((track.x0+track.x*cluster.z), cluster.x, distance) * TMath::Gaus((track.y0+track.y*cluster.z), cluster.y, distance);
+}
+
+

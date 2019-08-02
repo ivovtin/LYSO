@@ -1,0 +1,7 @@
+GEM geometry configuration as of January 2013
+detector x[mm]  y[mm]  z[mm]  phi[rad]
+ 0       0.10   9.26    135.  -0.022 
+ 1      -6.20  13.73   1135.   1.594
+ 2      -3.81   0.00   1105.  -0.004
+ 3     -11.92  11.08   2535.   0.030
+                              

@@ -1,0 +1,346 @@
+#include <iostream>
+#include <iterator>
+#include <numeric>
+#include <memory>
+#include <stdexcept>
+#include <assert.h>
+#include <algorithm>    // std::min_element, std::max_element
+
+#include "TRint.h"
+#include "TFile.h"
+#include "TTree.h"
+#include "TCanvas.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TGraph.h"
+#include "TStyle.h"
+
+#include "GemEvent.h"
+
+using namespace std;
+
+class TDaqDataFile {
+	std::auto_ptr<TFile> rootFile;
+	TTree * pTree;
+	int number;
+public:
+	GemEvent gem_data;
+public:
+	void open(const char* filename );
+	inline int  next()     { return pTree->GetEvent(number++); /* Should be positive. */ }
+	inline int  getCount() { return pTree->GetEntries(); }
+};
+//--------------------------------------------------------------
+void TDaqDataFile::open(const char* filename) {
+	cout << "Opening " << filename << endl;
+	rootFile.reset( new TFile(filename, "READ") );
+	pTree = dynamic_cast<TTree*>(rootFile->Get("daq"));
+	if (!pTree) {
+		throw std::runtime_error("No 'daq' tree in file");
+	}
+	
+	pTree->SetBranchAddress("gem", &gem_data);
+	cout << "with " << getCount() << " entries" << endl;
+	//pTree->Print();
+	number = 0;
+}
+//--------------------------------------------------------------
+
+const int selected_frame = 12;
+const int threshold = 200;
+const int threshold_oldgem = 5;
+const double r8a_factor = 71.9;
+
+const struct {
+	int binx;
+	int biny;
+} THIN =  { 160, 40 };
+
+const struct {
+	int binx;
+	int biny;
+} THICK =  { 128, 36 };
+
+// Layout of the GEM data in the ROOT file
+struct gem_data {
+	short thick [10][512];
+	short thin  [2][32][640];
+};
+
+// Agregated data over run
+int hitmap_thick [2][512];
+int hitmap_thin  [2][32][320][2];
+
+// Data of current event to process
+int thin [2][32][2][320];
+int thick[2][2][256];
+
+struct search_result {
+	int maxx; // channel number
+	int maxf; // pipeline frame
+	int maxval; // peak value
+	int det;    // detector number
+	int coor;   // coordinate direct/stereo aka strait/inclined
+};
+
+search_result do_search(int det, int coor) {
+	search_result result = {-1, -1, 0, det, coor};
+		
+	for (int frame=10; frame<=12; ++frame) /// 9-14
+	for (int i=0; i<320; ++i) {
+		int value = thin[det][frame][coor][i];
+		if (abs(value)>result.maxval) {
+			result.maxx=i;
+			result.maxf=frame;
+			result.maxval = abs(value);
+		}
+	}
+	return result;
+}
+
+struct cluster_result {
+	int vertex;
+	float gravity;
+	int width;
+	int charge;
+};
+
+cluster_result extract_cluster(search_result v) {
+	cluster_result result = { v.maxx, 0., 0, 0 };
+	int l, r;
+	for (l=v.maxx; l>1   && thin[v.det][v.maxf][v.coor][l-1]>0; --l);
+	for (r=v.maxx; r<318 && thin[v.det][v.maxf][v.coor][r+1]>0; ++r);
+	
+	result.width = r-l+1;
+	l=v.maxx-1; r=v.maxx+1;
+	for (int i=l; i<=r; ++i) {
+		int value = thin[v.det][v.maxf][v.coor][i];
+		result.gravity += abs(i*value);
+		result.charge  += abs(value);
+	}
+	result.gravity /= result.charge;
+	
+	return result;
+}
+
+search_result do_search_oldgem(int det, int coor) {
+	search_result result = {-1, -1, 0, det, coor};
+		
+	for (int i=0; i<256; ++i) {
+		int value = thick[det][coor][i];
+		if (abs(value)>result.maxval) {
+			result.maxx=i;
+			result.maxval = abs(value);
+		}
+	}
+	return result;
+}
+
+cluster_result extract_cluster_oldgem(search_result v) {
+	cluster_result result = { v.maxx, 0., 0, 0 };
+	int l, r;
+	for (l=v.maxx; l>1   && thick[v.det][v.coor][l-1]>0; --l);
+	for (r=v.maxx; r<254 && thick[v.det][v.coor][r+1]>0; ++r);
+	
+	result.width = r-l+1;
+
+	l=v.maxx-1; r=v.maxx+1;
+	for (int i=l; i<=r; ++i) {
+		int value = thick[v.det][v.coor][i];
+		result.gravity += abs(i*value);
+		result.charge  += abs(value);
+	}
+	result.gravity /= result.charge;
+	
+	return result;
+}
+
+string working_file = "/home/kudryavtsev/scan_hv_thin_gems/2014-04-09_14:00.root";
+
+float thick_gem_diff_to_y(float diff) {
+//	return diff;
+
+	if (diff <8) return diff*5;
+	if (diff>=8 && diff<=26) return 40+(diff-8);
+	if (diff>26) return 40+20+(diff-26)*5;
+}
+
+void tuneStyle(TVirtualPad *c, TH2 *h) {
+	h->GetXaxis()->SetNdivisions(540);
+	c->SetGridx();
+	c->SetGridy();
+}
+
+int main (int argc, char* argv[]) {
+	if (argc>1) working_file = argv[1];
+	argc=1;
+	TRint app("App", &argc, argv);
+	TDaqDataFile daq_file;
+	assert(sizeof(gem_data)==sizeof(daq_file.gem_data.amplitudes));
+	gem_data *data = reinterpret_cast<gem_data*>(daq_file.gem_data.amplitudes);
+	
+	daq_file.open(working_file.c_str());
+
+	TH1 *h1a = new TH1F("a", "A", 256, 0, 256);
+	TH1 *h1b = new TH1F("b", "B", 256, 0, 256);
+	TH1 *h1c = new TH1F("c", "C", 256, 0, 256);
+	TH1 *h1d = new TH1F("d", "D", 256, 0, 256);
+
+	TH2 *h2a = new TH2F("a2", "A2", 320, 0, 320, 32, 0, 32);
+	TH2 *h2b = new TH2F("b2", "B2", 320, 0, 320, 32, 0, 32);
+	TH2 *h2c = new TH2F("c2", "C2", 320, 0, 320, 32, 0, 32);
+	TH2 *h2d = new TH2F("d2", "D2", 320, 0, 320, 32, 0, 32);
+	TH2 *h2xy1 = new TH2F("xy1", "XY 2nd thin(160x40mm)", THIN.binx, 0, 160, THIN.biny, -20, 20);
+	TH2 *h2xy2 = new TH2F("xy2", "XY 1st thin(160x40mm)", THIN.binx, 0, 160, THIN.biny, -20, 20);
+	TH2 *h2thick_xy1 = new TH2F("xy1thick", "XY 1st thick", THICK.binx, 0, 128, 36, -18, 18);
+	TH2 *h2thick_xy2 = new TH2F("xy4thick", "XY 4th thick", THICK.binx, 0, 128, 36, -18, 18);
+	TH1 *clw = new TH1F("clw", "cluster width", 20, 0, 20);
+	TH1 *clc = new TH1F("clc", "cluster charge", 100, 0, 1400000);
+	TH2 *h2a_corr = new TH2F("corr1", "correlation A", 320, 0, 320, 320, 0, 320);
+	TH2 *h2a_corrval = new TH2F("corr1val", "correlation A", 500, 0, 4000, 500, 0, 4000);
+	TH2 *h2b_corr = new TH2F("corr2", "correlation B", 320, 0, 320, 320, 0, 320);
+	TH2 *h2b_corrval = new TH2F("corr2val", "correlation B", 500, 0, 4000, 500, 0, 4000);
+	
+	TGraph *gxy = new TGraph;
+
+	int old_gem_hits = 0;
+	int new_gem_hits[4] = {0,0,0,0};
+
+
+	for (int k=0, k_end=daq_file.getCount(); k<k_end; ++k) {
+
+	if ( daq_file.next()<=0 ) break;
+		// Unpack thick gems channels
+		for (int i=0; i<256; ++i) {
+			thick[0][0][i] = data->thick[0][i+256];
+			thick[0][1][i] = data->thick[0][i];
+			thick[1][0][i] = data->thick[3][i+256];
+			thick[1][1][i] = data->thick[3][i];
+		}
+		
+		bool oldgem_event_present;
+		{
+			int old_gem_has_hits[4] = {0,0,0,0};
+			search_result result[] = { do_search_oldgem(0,0), do_search_oldgem(0,1), do_search_oldgem(1,0), do_search_oldgem(1,1) };
+			cluster_result clusters[4];
+			TH1* h1[] = { h1a, h1b, h1c, h1d };
+			for (int i=0; i<4; ++i)
+				if (result[i].maxx>=0 && result[i].maxval>threshold_oldgem) {
+					cluster_result cluster = extract_cluster_oldgem(result[i]);
+					clusters[i]  = cluster;
+					h1[i]->Fill(result[i].maxx);
+					old_gem_has_hits[i]++;
+				}
+			oldgem_event_present = (std::count(old_gem_has_hits, old_gem_has_hits+4, 1)==4 
+			&& abs(result[0].maxx-result[1].maxx)<=36
+			&& abs(result[2].maxx-result[3].maxx)<=36);
+			//if (oldgem_event_present)
+			//	old_gem_hits++;
+
+			bool present_1st = std::count(old_gem_has_hits,   old_gem_has_hits+2, 1)==2 && abs(result[0].maxx-result[1].maxx)<36;
+			bool present_2nd = std::count(old_gem_has_hits+2, old_gem_has_hits+4, 1)==2 && abs(result[2].maxx-result[3].maxx)<36;
+			float diff = (clusters[0].gravity-clusters[1].gravity); //abs(result[0].maxx-result[1].maxx);
+			if (present_1st) { 
+			    h2thick_xy1->Fill(128.0-0.5*clusters[0].gravity, diff-18, (diff>=7 && diff<=27) ? 1.0 : 0.2 );
+			    gxy->SetPoint(gxy->GetN(),128.0-0.5*clusters[0].gravity, diff-18);
+			}
+			      diff = (clusters[2].gravity-clusters[3].gravity); //abs(result[2].maxx-result[3].maxx);
+			if (present_2nd) h2thick_xy2->Fill(128.0-0.5*clusters[2].gravity, diff-18, (diff>=7 && diff<=27) ? 1.0 : 0.2 );
+			
+			if (present_1st) old_gem_hits++;
+		}
+
+
+		//data->thin[0][22][100] = 0;
+		//data->thin[1][20][544] = 0;
+		// Wipe noise in non-working area of 2nd thin gem detector
+		for (int frame=0; frame<32; ++frame)
+			for (int i=550; i<640; ++i) 
+				data->thin[0][frame][i] = 0;
+		// Unpack thin detector data into array of [detector_number 0-1][pipeline_frame 0-31][inclined/straight strips 0-1][strip number 0-319]
+		for (int f=0; f<32; ++f)
+		for (int i=0; i<640; ++i) {
+			thin[0][f][i%2][i/2] = data->thin[0][f][i];
+			thin[1][f][i%2][i/2] = data->thin[1][f][i];
+		}
+		
+		search_result  result[]  = { do_search(0, 0), do_search(0, 1), do_search(1, 0), do_search(1, 1)};
+		TH2* h2[] = { h2a, h2b, h2c, h2d };
+		for (int i=0; i<4; ++i)
+			if (result[i].maxx>=0 && result[i].maxval>threshold) {
+				cluster_result cluster = extract_cluster(result[i]);
+				if ( cluster.width >= 1 ) {
+					h2[i]->Fill(cluster.gravity, result[i].maxf);
+					if (oldgem_event_present) new_gem_hits[i]++;
+				}
+				
+				if (i==2) {
+					clw->Fill(cluster.width);
+					clc->Fill(cluster.charge*r8a_factor);
+				}
+			}
+		int direct = result[0].maxx;
+		int stereo = result[1].maxx;
+		if (direct>=0 && stereo>=0 && (direct-stereo)<=40 && (direct-stereo)>=0) {
+			h2a_corr->Fill(direct, stereo);
+			h2a_corrval->Fill(result[0].maxval, result[1].maxval);
+			h2xy1->Fill( (160.0-0.5*direct), (direct-stereo)-20.0 );
+		}
+		direct = result[2].maxx;
+		stereo = result[3].maxx;
+		if (direct>=0 && stereo>=0 && (direct-stereo)<=40 && (direct-stereo)>=0) {
+			h2b_corr->Fill(direct, stereo);
+			h2b_corrval->Fill(result[2].maxval, result[3].maxval);
+			h2xy2->Fill( (160.0-0.5*direct), (direct-stereo)-20.0 );
+		}
+
+	}
+	
+	TCanvas *c1 = new TCanvas("c1", "hitmap", 10,10, 800, 800);
+	c1->Divide(4,4);
+
+	c1->cd(1); h1a->Draw();
+	c1->cd(2); h1b->Draw();
+	c1->cd(3); h1c->Draw();
+	c1->cd(4); h1d->Draw();
+	
+	c1->cd(5); h2a->Draw("colz");
+	c1->cd(6); h2b->Draw("colz");
+	c1->cd(7); h2c->Draw("colz");
+	c1->cd(8); h2d->Draw("colz");
+	c1->cd(9);h2a_corr->Draw("colz");
+	c1->cd(10);h2a_corrval->Draw("colz");
+	c1->cd(11);h2b_corr->Draw("colz");
+	c1->cd(12);h2b_corrval->Draw("colz");
+	c1->cd(13); clw->Draw();
+	c1->cd(14); clc->Draw();
+	
+	//c1->SaveAs("c1.root");
+	//c1->Draw();
+	delete c1;
+
+	TCanvas *c2 = new TCanvas("c2", "XY", 10,10, 800, 800);
+	c2->Divide(1,3);
+	
+	c2->cd(1);  gxy->Draw("ap"); //h2thick_xy1->Draw("colz");
+	//c2->cd(2);  h2thick_xy2->Draw("colz");
+	c2->cd(2);  h2xy1->Draw("colz");
+	c2->cd(3);  h2xy2->Draw("colz");
+
+	tuneStyle(c2->cd(1), h2thick_xy1);
+	//tuneStyle(c2->cd(2), h2thick_xy2);
+	tuneStyle(c2->cd(2), h2xy1);
+	tuneStyle(c2->cd(3), h2xy2);
+
+	gStyle->SetPalette(1);
+	c2->Draw();
+
+	/*cout << "Best efficiency: " << endl
+	     << h2a->GetEntries() << " " << h2b->GetEntries() << endl
+	     << h2c->GetEntries() << " " << h2d->GetEntries() << endl;*/
+	for (int i=0; i<4; ++i) {
+		cout << new_gem_hits[i] << " / " << old_gem_hits << " = " << (float)new_gem_hits[i]/old_gem_hits << endl;
+	}
+	cout << "Cluster mean: " << clc->GetMean() << endl;
+	app.Run();
+}

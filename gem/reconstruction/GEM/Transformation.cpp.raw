@@ -1,0 +1,18 @@
+/*
+ * Transformation.cpp
+ *
+ *  Created on: 12.12.2012
+ *      Author: gulevich
+ */
+
+#include "Transformation.h"
+
+Transformation::Transformation() {
+	// TODO Auto-generated constructor stub
+
+}
+
+Transformation::~Transformation() {
+	// TODO Auto-generated destructor stub
+}
+

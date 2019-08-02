@@ -1,0 +1,5 @@
+GEM geometry configuration as of 2016
+det  x[mm]  y[mm]  z[mm]  phi[rad]
+ 10  0.00   0.00   390.   0.000
+  0  0.00   0.00   810.   3.140
+ 11  0.00   0.00   1280.  0.000

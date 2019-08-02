@@ -1,0 +1,109 @@
+#include <iostream>
+#include <iterator>
+#include "GemDetector.h"
+
+using namespace std;
+
+namespace gem {
+
+static bool compareClustersByAmplitude(const LinearCluster & lv, const LinearCluster & rv) {
+	return std::abs(lv.amplitude()) > std::abs(rv.amplitude());
+}
+
+std::vector<PlaneCluster> ThickDetector::buildLocalClusters(GemEvent & event, std::vector<LinearCluster> & unboundStereoClusters) const
+{
+	// Determine amplitude memory space of this detector
+	Short_t * _amp_x = event.amplitudes + (index() * 2 + 1) * STRIP_NUM_THICK;
+	Short_t * _amp_y = event.amplitudes + index() * 2 * STRIP_NUM_THICK;
+
+	// Find straight clusters
+	vector<LinearCluster> clustersX = _clusterizationX.getClusters(_amp_x);
+
+	// Find stereo clusters
+	vector<LinearCluster> & clustersY = unboundStereoClusters;
+	clustersY = _clusterizationY.getClusters(_amp_y);
+
+	// Sort found clusters in amplitude descending order
+	std::sort(clustersX.begin(), clustersX.end(), compareClustersByAmplitude);
+	std::sort(clustersY.begin(), clustersY.end(), compareClustersByAmplitude);
+
+	// Bind stereo clusters to straight sclusters
+	std::vector<PlaneCluster> rv;
+	// Current implementation doesn't account for multibinding (multiple clusters being bound into one)
+	for(vector<LinearCluster>::iterator iX = clustersX.begin(); iX != clustersX.end(); ++iX) {
+		float x = iX->mean();
+		vector<LinearCluster>::iterator iY = clustersY.begin();
+		for( ; iY != clustersY.end(); ++iY) {
+			float delta = x - iY->mean() + 1;
+			if (delta < 0.5 || delta > 36.5)
+				continue;
+			break;
+		}
+		if (iY < clustersY.end()) {
+			rv.push_back(PlaneCluster(*iX, *iY, THICK_DET));
+			clustersY.erase(iY);
+		} else {
+			rv.push_back(PlaneCluster(*iX));
+		}
+	}
+	return rv;
+}
+
+std::vector<PlaneCluster> ThinDetector::buildLocalClusters(GemEvent & event, std::vector<LinearCluster> & unboundStereoClusters) const
+{
+//	Short_t *det_amps_begin = event.amplitudes + 10 * 2 * STRIP_NUM_THICK + (index() - 10) * 32 * 2 * STRIP_NUM_THIN;
+//	Short_t *det_amps_end = event.amplitudes + 10 * 2 * STRIP_NUM_THICK + (index() - 10 + 1) * 32 * 2 * STRIP_NUM_THIN;
+	Short_t *det_amps_begin = event.amplitudes + 10 * 2 * STRIP_NUM_THICK + (index() - 0) * 16 * 2 * STRIP_NUM_THIN;
+	Short_t *det_amps_end = event.amplitudes + 10 * 2 * STRIP_NUM_THICK + (index() - 0 + 1) * 16 * 2 * STRIP_NUM_THIN;
+
+	// Repack amplitudes in a new array
+	if (index()==2)
+	{
+	for(int i=0; i<STRIP_NUM_THIN; i++) {
+		_amp_y[i] = det_amps_begin[_frame * 2 * STRIP_NUM_THIN + 2 * i];
+		_amp_x[i] = det_amps_begin[_frame * 2 * STRIP_NUM_THIN + 2 * i + 1];
+	}
+	}
+	else
+	{
+	for(int i=0; i<STRIP_NUM_THIN; i++) {
+		_amp_x[i] = det_amps_begin[_frame * 2 * STRIP_NUM_THIN + 2 * i];
+		_amp_y[i] = det_amps_begin[_frame * 2 * STRIP_NUM_THIN + 2 * i + 1];
+	}
+	}
+	// Find straight clusters
+	vector<LinearCluster> clustersX = _clusterizationX.getClusters(_amp_x);
+
+	// Find stereo clusters
+	vector<LinearCluster> & clustersY = unboundStereoClusters;
+	clustersY = _clusterizationY.getClusters(_amp_y);
+
+	// Sort found clusters in amplitude descending order
+	std::sort(clustersX.begin(), clustersX.end(), compareClustersByAmplitude);
+	std::sort(clustersY.begin(), clustersY.end(), compareClustersByAmplitude);
+
+	// Bind stereo clusters to straight sclusters
+	std::vector<PlaneCluster> rv;
+	// Current implementation doesn't account for multibinding (multiple clusters being bound into one)
+	for(vector<LinearCluster>::iterator iX = clustersX.begin(); iX != clustersX.end(); ++iX) {
+		float x = iX->mean();
+		vector<LinearCluster>::iterator iY = clustersY.begin();
+		for( ; iY != clustersY.end(); ++iY) {
+			float delta = x - iY->mean() + 1;
+			if (delta < 0.5 || delta > 40.5)
+				continue;
+			break;
+		}
+		if (iY < clustersY.end()) {
+			rv.push_back(PlaneCluster(*iX, *iY, THIN_DET));
+			clustersY.erase(iY);
+		} else {
+			rv.push_back(PlaneCluster(*iX));
+		}
+	}
+	return rv;
+}
+
+} /* namespace gem */
+
+

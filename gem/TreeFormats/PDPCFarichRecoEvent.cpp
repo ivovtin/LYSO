@@ -1,0 +1,204 @@
+#include <iostream>
+#include <iomanip>
+#include <cassert>
+#include <cstdlib>
+#include <cmath>
+#include "PDPCFarichRecoEvent.h"
+#include "TString.h"
+
+using namespace std;
+
+ClassImp(PDPCFarichRecoHit)
+ClassImp(PDPCFarichRecoEvent)
+
+bool operator<(const PDPCFarichRecoHit& l, const PDPCFarichRecoHit& r) {
+    if( l.GetTime()<r.GetTime() ) return true;
+    return false;
+}
+
+Int_t PDPCFarichRecoHit::Compare(const TObject* right) const
+{
+    PDPCFarichRecoHit* r = (PDPCFarichRecoHit*)right;
+    if( time<r->GetTime() )
+        return -1;
+    else if( time>r->GetTime() )
+        return 1;
+    
+    if( pixelSID<r->GetPixelSerialID() )
+        return -1;
+    else if( pixelSID>r->GetPixelSerialID() )
+        return 1;
+        
+    return 0;
+}
+
+PDPCFarichRecoHit::PDPCFarichRecoHit() : TObject()
+{
+    fitThis = kFALSE;
+    central = kFALSE;
+    target = 0;
+    die = 0;
+    pixel = 0;
+    pixelSID = 0;
+    xindex = 0;
+    yindex = 0;
+    x = 0.;
+    y = 0.;
+    count = 0;
+    time = 0;
+}
+
+void PDPCFarichRecoHit::Print(Option_t *opt) const
+{
+    std::cout
+        << "pixelSID=" << pixelSID << " xind=" << xindex << " yind=" << yindex << " count=" << count
+	<< " time=" << time << std::endl;
+}
+
+vector<TClonesArray*> PDPCFarichRecoEvent::vgHits;
+int PDPCFarichRecoEvent::nActiveEvents = 0;
+
+PDPCFarichRecoEvent::PDPCFarichRecoEvent() : TObject()
+{
+    if( nActiveEvents>=(int)vgHits.size() )
+        vgHits.push_back(new TClonesArray("PDPCFarichRecoHit",200));
+    hits = vgHits[nActiveEvents++];
+//    hits->Delete();
+    number = 0;
+    sync = 0;
+    frame = 0;
+    nhits = 0;
+    nsel = 0;
+    fitted = kFALSE;
+    radius = 0.;
+    nLogLH = NAN;
+    consistency = NAN;
+    x0 = 0.;
+    y0 = 0.;
+    time = 0.;
+    npe = 20.;
+    sigmaRadius = 1.5;
+    sigmaTime = 6.5;
+}
+
+PDPCFarichRecoEvent::~PDPCFarichRecoEvent()
+{
+    hits->Delete();
+    nActiveEvents--;
+}
+
+void PDPCFarichRecoEvent::Reset() // static
+{
+    for(size_t i=0; i<vgHits.size(); i++) {
+	vgHits[i]->Delete();
+	delete vgHits[i];
+    }
+    vgHits.clear();
+    nActiveEvents = 0;
+}
+
+void PDPCFarichRecoEvent::ResetFit()
+{
+    fitted = kFALSE;
+    nLogLH = NAN;
+    consistency = NAN;
+}
+
+PDPCFarichRecoHit* PDPCFarichRecoEvent::AddHit()
+{
+    if( nhits==hits->GetSize() )
+        hits->Expand(2*hits->GetSize());
+    return new((*hits)[nhits++]) PDPCFarichRecoHit;
+}
+
+//Estimate parameter values before fit
+Bool_t PDPCFarichRecoEvent::Estimate()
+{
+    nsel = 0;
+    Double_t Sr2x=0., Sr2y=0., Sxy=0., Sx2=0., Sy2=0., Sx=0., Sy=0.;
+    Double_t x, y, r2;
+    for(UInt_t i=0; i<nhits; i++) {
+	PDPCFarichRecoHit* ahit = (PDPCFarichRecoHit*)hits->At(i);
+	if( !ahit->UsedForFit() ) continue;
+
+	x = ahit->GetXposition();
+	y = ahit->GetYposition();
+	r2 = x*x+y*y;
+	Sx  += x;
+	Sy  += y;
+	Sx2 += x*x;
+	Sy2 += y*y;
+	Sxy += x*y;
+	Sr2x += r2*x;
+	Sr2y += r2*y;
+	nsel++;
+    }
+
+    assert( nsel!=0 );
+
+    Double_t sig2_x=(Sx2-Sx*Sx/nsel);
+    Double_t sig2_y=(Sy2-Sy*Sy/nsel);
+    Double_t cov_xy=(Sxy-Sx*Sy/nsel);
+    Double_t cov_r2x=(Sr2x-(Sx2+Sy2)*Sx/nsel);
+    Double_t cov_r2y=(Sr2y-(Sx2+Sy2)*Sy/nsel);
+    Double_t denom = (sig2_x*sig2_y-cov_xy*cov_xy);
+
+    Double_t _x0 = 0., _y0 = 0., _r = 0.;
+
+    if( denom!=0. ) {
+	x0 = 0.5*(cov_r2x*sig2_y-cov_r2y*cov_xy)/denom;
+	y0 = 0.5*(cov_r2y*sig2_x-cov_r2x*cov_xy)/denom;
+	radius = sqrt( (Sx2-2*x0*Sx+Sy2-2*y0*Sy)/nsel+x0*x0+y0*y0 );
+    }
+
+    if( radius==0. || radius>100. || fabs(x0)>100. || fabs(y0)>100. )
+	return kFALSE;
+
+    return kTRUE;
+}
+
+void PDPCFarichRecoEvent::Print(Option_t *opt) const
+{
+    cout << "Event " << number << ", sync "<<sync<<", frame " << frame << ": " << nhits << " hits" << endl;
+    TString sopt(opt);
+    sopt.ToLower();
+    if( sopt.Contains("hits") ) {
+	for(UInt_t i=0; i<nhits; i++)
+	{
+            cout << "  hit " << i << ": ";
+	    GetHit(i)->Print();
+	}
+    }
+    int prec = cout.precision();
+    if( fitted ) {
+	cout << " fitted parameters:\n ring_radius=" << radius << " mm, x0=" << x0 << " mm, y0=" << y0
+	    << "mm, time=" << setprecision(10) << time << setprecision(prec) << " bins, -log(LH)=" << nLogLH << endl;
+    } else {
+	cout << " average_time=" << setprecision(10) << time << setprecision(prec) << "\n not fitted" << endl;
+    }
+}
+
+void PDPCFarichRecoEvent::Copy(PDPCFarichRecoEvent& r) const
+{
+    r.number = number;
+    r.sync = sync;
+    r.frame = frame;
+    r.nhits = nhits;
+    r.nsel = nsel;
+    r.fitted = fitted;
+    r.radius = radius;
+    r.x0 = x0;
+    r.y0 = y0;
+    r.time = time; 
+    r.nLogLH = nLogLH;
+    r.consistency = consistency;
+    r.npe = npe;        
+    r.sigmaRadius = sigmaRadius;
+    r.sigmaTime = sigmaTime;  
+
+    r.hits->Clear();
+    r.hits->ExpandCreateFast(nhits);
+    for(UInt_t i=0; i<nhits; i++) 
+        *(PDPCFarichRecoHit*)r.hits->At(i) = *(PDPCFarichRecoHit*)hits->At(i);
+}
+
