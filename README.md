@@ -17,3 +17,7 @@ You should create your own branch, then do pull requests when you are done. <br 
 
 - Start tasks on batch system: <br />
   ./run_batch.sh
+
+- test_beam is directory with script for create in root-file format from binary files <br />
+
+- gem is directory for create gemCluster
