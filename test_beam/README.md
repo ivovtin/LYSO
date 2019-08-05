@@ -7,7 +7,8 @@ gcc -o procfltr18jan2 -lstdc++ `root-config --libs --glibs --cflags ` procn2jan1
 1) сделать во всех 3-х директориях(gemCluster,reconstruction,TreeFormats) make clean
 и удалить все объектвные файлы (.o) <br />
 2) удалить неверные пути в файлах заменив на свою директорию (alexbarn -> ovtin/development): для этого использовать grep -r ovtin . <br />
-3) сделать make <br />
+3) сделать make в reconstruction <br />
+4) сделать make в gemCluster<br />
 
 исходники кода лежат в /home/alexbarn/utils/ <br />
 данные лежат с прототипов в /home/alexbarn/csipc/ <br />
