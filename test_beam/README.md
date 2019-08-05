@@ -1,6 +1,6 @@
 ## Для сборки в test_beam:
-gcc -o plotmagnegf_jan2018 -lstdc++ `root-config --libs --glibs --cflags` plotmag_neg_jan2018.cc <br />
-gcc -o procfltr18jan2 -lstdc++ `root-config --libs --glibs --cflags ` procn2jan18.cc <br />
+gcc -o plotmagnegf_jan2018 -lstdc++ \`root-config --libs --glibs --cflags\` plotmag_neg_jan2018.cc <br />
+gcc -o procfltr18jan2 -lstdc++ \`root-config --libs --glibs --cflags\` procn2jan18.cc <br />
 
 
 ## Сборка gemCluster:
