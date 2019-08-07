@@ -8,14 +8,13 @@ You should create your own branch, then do pull requests when you are done. <br 
 ## Description
 - Information about experiment - logbook.txt <br />
 - Base script is plotxy_new.C <br />
+  Выполняет обработку данных. Сдруживается дерево exbeamdata от МКП c деревьями SiPM, DAQ и GEM.
+  Фронт сигнала фитируется прямой. Кристал LYSO по координате Y разбивается на несколько промежутков, 
+  и для каждого получаем временное разрешение.<br /> 
   Example: <br />
-  root -l <br /> 
-  root [0] .x plotxy_new.C("lyso30minus",200,0,0,23,26) <br />
-  or <br />
-  root -l -q 'plotxy_new.C("lyso30minus",200,0,0,23,26)'
-
-- Script for create chain: <br />
-  root -l -q 'make_chain.C("/home/chizhik/root/2019-06-07_LYSO/sipmlyso30minus.list","test.root","exbeamdata")' <br />  
+  root -l -q 'plotxy_new.C("lyso30minus",200,0,0,23,26)' <br />
+  root -l -q 'plotxy_new.C("lyso30plus",200,0,0,23,26)' <br />
+  root -l -q 'plotxy_new.C("lysozero",200,0,0,23,26)' <br />
 
 - Start tasks on batch system: <br />
   ./run_batch.sh

@@ -1,3 +1,4 @@
+//function form fit
 TF1* Init_Aprox(Int_t num, const char* name) {
 	TF1* f = new TF1(name ,"[0] + [1] * x", 0, 200);
      	f -> SetParName(0, "Const");
@@ -8,49 +9,124 @@ TF1* Init_Aprox(Int_t num, const char* name) {
 }
 
 void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t y2) {
+    
     gStyle -> SetPalette(1);
 
-    TString inputDir="/home/chizhik/root/2019-06-07_LYSO/";
     TString outDir="/home/ovtin/development/LYSO/out/";
 
-    char s[100];
-    // printing current working directory 
-    printf("%s\n", getcwd(s, 100));    
-    chdir(inputDir); 
-    printf("%s\n", getcwd(s, 100)); 
+    TChain *exbeamdata=new TChain("exbeamdata");
+    TChain *daq=new TChain("daq");
+    TChain *gem=new TChain("gem");
+    TChain *sipm=new TChain("exbeamdata");
+   
+    if(name=="lyso30minus")
+    { 
+     //data from MCP
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_18-53-23/mcplyso2019-06-07_18-53.root");
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-00-52/mcplyso2019-06-07_19-00.root");
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-05-12/mcplyso2019-06-07_19-05.root");
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-10-16/mcplyso2019-06-07_19-10.root");
+ 
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_18-53-23/2019-06-07_18-53.root");
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-00-52/2019-06-07_19-00.root");
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-05-12/2019-06-07_19-05.root");
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-10-16/2019-06-07_19-10.root");
+ 
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_18-53-23/gem_2019-06-07_18-53.root");
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-00-52/gem_2019-06-07_19-00.root");
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-05-12/gem_2019-06-07_19-05.root");
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-10-16/gem_2019-06-07_19-10.root");
 
-    TString fpixel = TString(inputDir + "mcp" + name + ".root");
-    cout << fpixel << endl;
+     //data from SIPM
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_18-53-23/sipm2019-06-07_18-53.root");
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-00-52/sipm2019-06-07_19-00.root");
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-05-12/sipm2019-06-07_19-05.root");
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-10-16/sipm2019-06-07_19-10.root");
+    }
 
-    TFile* f1 = new TFile(fpixel, "read");
-    TTree* exbeamdata = (TTree*)f1 -> Get("exbeamdata");
-    exbeamdata -> Print();
+    if(name=="lyso30plus")
+    { 
+     //data from MCP
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-24-54/mcplyso2019-06-07_19-24.root");
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-32-34/mcplyso2019-06-07_19-32.root");
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-38-34/mcplyso2019-06-07_19-38.root");
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-43-43/mcplyso2019-06-07_19-43.root");
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-48-51/mcplyso2019-06-07_19-48.root");
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-53-41/mcplyso2019-06-07_19-53.root");
+ 
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-24-54/2019-06-07_19-24.root");
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-32-34/2019-06-07_19-32.root");
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-38-34/2019-06-07_19-38.root");
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-43-43/2019-06-07_19-43.root");
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-48-51/2019-06-07_19-48.root");
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-53-41/2019-06-07_19-53.root");
+ 
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-24-54/gem_2019-06-07_19-24.root");
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-32-34/gem_2019-06-07_19-32.root");
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-38-34/gem_2019-06-07_19-38.root");
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-43-43/gem_2019-06-07_19-43.root");
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-48-51/gem_2019-06-07_19-48.root");
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-53-41/gem_2019-06-07_19-53.root");
 
-    TString fdaq = TString(inputDir + "daq" + name + ".root");
-    cout << fdaq << endl;
-    TString fgem = TString(inputDir + "gem" + name + ".root");
-    cout << fgem << endl;
-    TString fsipm = TString(inputDir + "sipm" + name + ".root");
-    cout << fsipm << endl;
+     //data from SIPM
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-24-54/sipm2019-06-07_19-24.root");
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-32-34/sipm2019-06-07_19-32.root");
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-38-34/sipm2019-06-07_19-38.root");
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-43-43/sipm2019-06-07_19-43.root");
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-48-51/sipm2019-06-07_19-48.root");
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-53-41/sipm2019-06-07_19-53.root");
+    }
+ 
+     if(name=="lysozero")
+    { 
+     //data from MCP
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-05-00/mcpquartz2019-06-07_20-05.root");
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-11-25/mcplyso2019-06-07_20-11.root");
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-16-47/mcplyso2019-06-07_20-16.root");
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-21-30/mcplyso2019-06-07_20-21.root");
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-25-13/mcplyso2019-06-07_20-25.root");
+ 
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-05-00/2019-06-07_20-05.root");
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-11-25/2019-06-07_20-11.root");
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-16-47/2019-06-07_20-16.root");
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-21-30/2019-06-07_20-21.root");
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-25-13/2019-06-07_20-25.root");
+ 
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-05-00/gem_2019-06-07_20-05.root");
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-11-25/gem_2019-06-07_20-11.root");
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-16-47/gem_2019-06-07_20-16.root");
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-21-30/gem_2019-06-07_20-21.root");
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-25-13/gem_2019-06-07_20-25.root");
+
+     //data from SIPM
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-05-00/sipm2019-06-07_20-05.root");
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-11-25/sipm2019-06-07_20-11.root");
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-16-47/sipm2019-06-07_20-16.root");
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-21-30/sipm2019-06-07_20-21.root");
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-25-13/sipm2019-06-07_20-25.root");
+    }
+ 
+    exbeamdata -> Print();    
+    //Friend tree exbeamdata from MCP with gem, daq, sipm
+    exbeamdata -> AddFriend("gem");
+    exbeamdata -> AddFriend("daq");
+    exbeamdata -> AddFriend(sipm,"sipm");
+ 
+    //boundaries along y-coordinate of LYSO bar
     TString y_boundLeft;
     y_boundLeft.Form("%d", y1);
     TString y_boundRight;
     y_boundRight.Form("%d", y2);
 
-    //!!Creating Canvas!!//
-
+    //create Canvas
     TCanvas* CanvGeom = new TCanvas("CanvGeom", "Geometry(" + y_boundLeft + " - " + y_boundRight + ")", 1500, 600, 600, 600);
     CanvGeom -> Divide(2, 4);
-    CanvGeom -> Draw();
     TCanvas* CanvAmp = new TCanvas("CanvAmp", "Amplitude distributions(" + y_boundLeft + " - " + y_boundRight + ")", 1000, 600, 600, 600);
     CanvAmp -> Divide(2, 3);
-    CanvAmp -> Draw();
     TCanvas* CanvTimeDistribution = new TCanvas("CanvTimeDistribution", "Time distribution(" + y_boundLeft + " - " + y_boundRight + ")", 500, 600, 600, 600);
     CanvTimeDistribution -> Divide(2, 2);
-    CanvTimeDistribution -> Draw();
 
-    //!!Creating histograms for output!!//
-
+    //create histograms for output
     TH2F* xy = new TH2F("xy", "GEM hits", 140, 0, 140, 40, 0, 40);
     TH2F* xys = new TH2F("xys", "GEM hits with SiPM", 140, 0, 140, 40, 0, 40); //Need??//
     TH2F* xyev = new TH2F("xyev", "GEM hits per Event", 140, 0, 140, 40, 0, 40);
@@ -66,19 +142,16 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     TH2F* xyf = new TH2F("xyf", "pixels", 40, 40, 80, 40, 0, 40);
 
     //======================
-
-    exbeamdata -> AddFriend("gem", fgem);
-    exbeamdata -> AddFriend("daq", fdaq);
-    exbeamdata -> AddFriend("exb2 = exbeamdata", fsipm);
+   //selection conditions for trgMCP and DAQ
     TString Conditions_1 = "(exbeamdata.chtrg2r.ped - exbeamdata.chtrg2r.min) > 300 && (exbeamdata.chtrg2r.ped - exbeamdata.chtrg2r.min) < 900 && (exbeamdata.chtrg1r.ped - exbeamdata.chtrg1r.min) > 300 && (exbeamdata.chtrg1r.ped - exbeamdata.chtrg1r.min) < 900 && daq.lecroy2249.ch0 > 800 && daq.lecroy2249.ch0 < 1600";
+    //selection conditions for GEM
     TString Conditions_coor = "detClusters.x[2] > 40 &&  detClusters.x[2] < 49 && detClusters.y[2] >" + y_boundLeft + " &&  detClusters.y[2] <" + y_boundRight;
     TString Conditions_all = Conditions_1 + " && " + Conditions_coor;
 
-    //!!CanvCuts -> cd(1): Amplitude of min in triggers per event!!//
-
     CanvAmp -> cd(1);
-    exbeamdata -> Draw("exbeamdata.chtrg1r.ped - exbeamdata.chtrg1r.min >> htrg1"); // Amplitude of min in trigger per event//
-    exbeamdata -> Draw("exbeamdata.chtrg2r.ped - exbeamdata.chtrg2r.min >> htrg2"); //#//
+    //Amplitude of min in trigger per event
+    exbeamdata -> Draw("exbeamdata.chtrg1r.ped - exbeamdata.chtrg1r.min >> htrg1");
+    exbeamdata -> Draw("exbeamdata.chtrg2r.ped - exbeamdata.chtrg2r.min >> htrg2"); 
     htrg1 -> SetLineColor(2);
     htrg2 -> SetLineColor(4);
     htrg1 -> Draw();
@@ -89,14 +162,11 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     mcpb2 -> Draw("same");
     CanvAmp -> Update();
 
-    //!!CanvCuts -> cd(2): Map of hits!!//
-
+    //Map of hits GEM
     CanvGeom -> cd(1);
     exbeamdata -> Draw("detClusters.y[2]:detClusters.x[2] >> xy", Conditions_1,"");
     xy -> Draw("colz");
     CanvGeom -> Update();
-
-    //!!Errors!!//
 
     TProfile* amp = new TProfile("amp", "a(t)", 1024, 1. / 1024, 0.2 * 1024);
     TProfile* ampf = new TProfile("ampf", "a(t)", 1024, 1. / 1024, 0.2 * 1024);
@@ -110,19 +180,17 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
 
     TProfile2D* dtvsxy = new TProfile2D("dtvsxy", "#Delta T vs XY", 140, 0, 140, 40, 0, 40);
 
-    //!!Aproximations for signal!!//
-
+    //Aproximations for signal
     TF1* fun = Init_Aprox(200000, "fun");
     TF1* funsi = Init_Aprox(200000, "funsi");
     TF1* funtrg = Init_Aprox(-200000, "funtrg");
     TF1* funtrg2 = Init_Aprox(-200000, "funtrg2");
     TF1* GaussBKG = new TF1("GaussBKG", "[0] * exp(-((x - [1]) / [2]) * ((x - [1]) / [2]) / 2) + [3]", -10, 10);
 
-    //!!MAIN LOOP!!//
-
     Int_t nentries = 0;
     if (exbeamdata -> GetEntries() < nev) nev = exbeamdata -> GetEntries();
     cout << nev << endl;
+    //MAIN LOOP
     for (int i = 0; i < nev; i++){
     	if (!(i > nev1 && i < nev2)) {
         	exbeamdata -> Draw("(exbeamdata.ch1r.ped - exbeamdata.ch1.amp):exbeamdata.ch1.ti / 5. >> ampf", Conditions_all , "goff", 1, i);
@@ -136,7 +204,7 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
 		Float_t HalfHeightBinLeft = ampf -> FindFirstBinAbove(MaximumSignal / 2.0, 1);
 		Float_t HalfHeightBinRight = ampf -> FindLastBinAbove(MaximumSignal / 2.0, 1); //MaximumSignalBin);
 		
-		exbeamdata -> Draw("(exb2.ch1.amp - exb2.ch1r.ped):exb2.ch1.ti / 5. >> ampfsi", Conditions_all , "goff", 1, i);
+		exbeamdata -> Draw("(sipm.ch1.amp - sipm.ch1r.ped):sipm.ch1.ti / 5. >> ampfsi", Conditions_all , "goff", 1, i);
  		ampfsi -> SetAxisRange(2, 20, "X");
         	Float_t pedmax_Si = ampfsi -> GetMaximum();
         	Float_t pedmin_Si = ampfsi -> GetMinimum();
@@ -148,7 +216,7 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
 		Float_t HalfHeightBinRight_Si = ampfsi -> FindLastBinAbove(MaximumSignal_Si / 2.0, 1);
 			if (FirstSignalBin - MaximumSignalBin < 0 && MaximumSignalBin > 100 && MaximumSignal > 2 * (pedmax - pedmin) && (HalfHeightBinRight - HalfHeightBinLeft) > 10 && MaximumSignalBin < 350){
 	    		 exbeamdata -> Draw("exbeamdata.ch1.amp:exbeamdata.ch1.ti / 5. >> amp", Conditions_all, "goff", 1, i);
-	    		 exbeamdata -> Draw("exb2.ch1.amp:exb2.ch1.ti / 5. >> ampsi", Conditions_all, "goff", 1, i);
+	    		 exbeamdata -> Draw("sipm.ch1.amp:sipm.ch1.ti / 5. >> ampsi", Conditions_all, "goff", 1, i);
            		 exbeamdata -> Draw("exbeamdata.chtrg1.amp:exbeamdata.chtrg1.ti / 5. >> amptrg", Conditions_all, "goff", 1, i);
             		 exbeamdata -> Draw("exbeamdata.chtrg2.amp:exbeamdata.chtrg2.ti / 5. >> amptrg2", Conditions_all, "goff", 1, i);
 
@@ -156,7 +224,6 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
             		 Float_t ped = amp -> GetMean(2);
             		 amp -> SetAxisRange(2, 200, "X");
             		 Float_t min = amp -> GetMinimum();
-            	//	 Float_t halfbin = ampf -> FindFirstBinAbove((ped - min) / 2., 1);
 
 			 ampsi -> SetAxisRange(2, 20, "X");
             		 Float_t ped_Si = ampsi -> GetMean(2);
@@ -178,35 +245,25 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
             		 CanvGeom -> cd(2);
             		 exbeamdata -> Draw("detClusters.y[2]:detClusters.x[2] >> +xys", Conditions_all, "goff", 1, i);
             		 exbeamdata -> Draw("detClusters.y[2]:detClusters.x[2] >> xyev", Conditions_all, "goff", 1, i);
-	    	//	 xys -> Draw("text, colz");
             		 exbeamdata -> Draw("detClusters.y[2]:detClusters.x[2] >> +xyf", Conditions_all, "goff", 1, i);
-            	//	 xyf -> Draw("box, same");
-            	//	 CanvGeom -> Update();
-           	//	 CanvAmp -> Update();
 
-		//	 CanvAmp -> cd(2);
             		 funtrg -> SetParameter(0, pedtrg);
             		 funtrg -> SetParameter(1, -2000);
  	    		 funtrg2 -> SetParameter(0, pedtrg2);
             		 funtrg2 -> SetParameter(1, -2000);
-            	//	 amptrg -> Draw("");
             		 amptrg -> Fit(funtrg, "W", "S", (minbintrg - 5.5) /5., (minbintrg - 1.5) / 5.);
 			 
-		//	 CanvAmp -> cd(3);
             		 amptrg2 -> Fit(funtrg2,"W", "S", (minbintrg2 - 5.5) / 5., (minbintrg2 - 1.5) / 5.);
 	    		 Float_t tcrtrg = (-1 / 2 * (pedtrg - mintrg) + pedtrg - funtrg -> GetParameter(0)) / (funtrg -> GetParameter(1));
 	    		 Float_t tcrtrg2 = (-1 / 2 * (pedtrg2 - mintrg2) + pedtrg2 - funtrg2 -> GetParameter(0)) / (funtrg2 -> GetParameter(1));
             		 
-            	//	 CanvAmp -> cd(4); 
 			 fun -> SetParameter(0, ped);
             		 fun -> SetParameter(1, -200);
-            	//	 amp -> Draw();
             		 amp -> Fit(fun, "W", "S", (FirstSignalBin - 0.5) / 5., (FirstSignalBin + 4) / 5.);
 			 
 			 CanvAmp -> cd(5);
 			 funsi -> SetParameter(0, pedtrg);
             		 funsi -> SetParameter(1, -2000);
-		//	 ampsi -> Draw();
 			 ampsi -> Fit(funsi, "W", "S", (FirstSignalBin_Si - 10) / 5., (FirstSignalBin_Si + 25) / 5.);
 
             //======================
@@ -229,44 +286,19 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
             		 
             //======================
 
-		//	 CanvTimeDistribution -> cd(1);
             		 ht -> Fill(tcr - tcrtrg);          		 
-		//	 ht -> Draw("");
-
-		//	 CanvTimeDistribution -> cd(2);
 			 htsi -> Fill(tcr_Si - tcrtrg);
-		//	 htsi -> Draw("");
 
-           	//	 CanvAmp -> cd(6);
-            	//	 ampavg -> Draw("");
             	//	 cout << "dT=" << (tcr - tcrtrg) << endl;
-            	//	 CanvTimeDistribution -> Update();
-            	//	 CanvGeom -> cd(3);
             		 if ((tcr - tcrtrg) < 15 && (tcr - tcrtrg) > -2) {
                 	 	dtvsxy -> Fill(xyev -> GetMean(1), xyev -> GetMean(2), tcr - tcrtrg);
-                //		dtvsxy -> Draw("lego2, 0");
             	  	 }
-	    	//	 CanvGeom -> Update();
 
-	    	//	 CanvGeom -> cd(4);
 	    		 TimeVSx -> Fill(xyev -> GetMean(1), tcr - tcrtrg);
-	    	//	 TimeVSx -> Draw("colz");
-	    	
-		//	 CanvGeom -> cd(5);
 	    		 TimeVSy -> Fill(xyev -> GetMean(2), tcr - tcrtrg);
-	    	//	 TimeVSy -> Draw("colz");
-
-	    	//	 CanvTimeDistribution -> cd(3);
 	    		 TimeDistributionTriggers -> Fill(tcrtrg2 - tcrtrg);
-	    	//	 TimeDistributionTriggers -> Draw();
-
-	    	//	 CanvGeom -> cd(6);
 	    		 TimeVSAmplitude -> Fill(mintrg, tcrtrg - tcrtrg2);
-	    	//	 TimeVSAmplitude -> Draw("colz");
-
-		//	 CanvTimeDistribution -> cd(4);
 			 Time -> Fill(tcr - tcr_Si);
-		//	 CanvAmp -> Update();
        		 }
          }
     	 printf("%d\r",i); fflush(stdout);
@@ -303,18 +335,7 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     CanvGeom -> Update();
     CanvTimeDistribution -> Update(); 
     
-    CanvTimeDistribution -> SaveAs(outDir + name + "(" + y_boundLeft + " - " + y_boundRight  + ")_CanvTimeDistribution.root");
-    CanvAmp -> SaveAs(outDir + name + "(" + y_boundLeft + " - " + y_boundRight  + ")_CanvAmp.root");
-    CanvGeom -> SaveAs(outDir + name + "(" + y_boundLeft + " - " + y_boundRight  + ")_CanvGeom.root");
-/*
-    GaussBKG -> SetParLimits(0, 1, 100);
-    GaussBKG -> SetParLimits(1, 5, 10);
-    GaussBKG -> SetParLimits(2, 0.1, 1);
-    GaussBKG -> SetParLimits(3, 0, 10);
-    GaussBKG -> SetParameter(0, 1);
-    GaussBKG -> SetParameter(1, Time -> GetMean());
-    GaussBKG -> SetParameter(2, 0.1);
-    GaussBKG -> SetParameter(3, 0);
-    Time -> Fit("GaussBKG", "w", "S");
-*/
+    CanvTimeDistribution -> SaveAs(outDir + name + "(" + y_boundLeft + "-" + y_boundRight  + ")_CanvTimeDistribution.root");
+    CanvAmp -> SaveAs(outDir + name + "(" + y_boundLeft + "-" + y_boundRight  + ")_CanvAmp.root");
+    CanvGeom -> SaveAs(outDir + name + "(" + y_boundLeft + "-" + y_boundRight  + ")_CanvGeom.root");
 }
