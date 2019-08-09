@@ -10,6 +10,9 @@ TF1* Init_Aprox(Int_t num, const char* name) {
 
 void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t y2) {
     
+    gStyle->SetOptStat(1);
+    gStyle->SetOptFit(1);
+    gROOT->SetStyle("Plain");
     gStyle -> SetPalette(1);
 
     TString outDir="/home/ovtin/development/LYSO/out/";
@@ -85,18 +88,19 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
      exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-16-47/mcplyso2019-06-07_20-16.root");
      exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-21-30/mcplyso2019-06-07_20-21.root");
      exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-25-13/mcplyso2019-06-07_20-25.root");
- 
+     
      daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-05-00/2019-06-07_20-05.root");
      daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-11-25/2019-06-07_20-11.root");
      daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-16-47/2019-06-07_20-16.root");
      daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-21-30/2019-06-07_20-21.root");
      daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-25-13/2019-06-07_20-25.root");
- 
+     
      gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-05-00/gem_2019-06-07_20-05.root");
      gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-11-25/gem_2019-06-07_20-11.root");
      gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-16-47/gem_2019-06-07_20-16.root");
      gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-21-30/gem_2019-06-07_20-21.root");
      gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-25-13/gem_2019-06-07_20-25.root");
+     
 
      //data from SIPM
      sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-05-00/sipm2019-06-07_20-05.root");
@@ -104,6 +108,14 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
      sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-16-47/sipm2019-06-07_20-16.root");
      sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-21-30/sipm2019-06-07_20-21.root");
      sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-25-13/sipm2019-06-07_20-25.root");
+    }
+
+     if(name=="test")
+    {
+     exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-05-00/mcpquartz2019-06-07_20-05.root");
+     daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-05-00/2019-06-07_20-05.root");
+     gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-05-00/gem_2019-06-07_20-05.root");
+     sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-05-00/sipm2019-06-07_20-05.root");
     }
  
     exbeamdata -> Print();    
@@ -127,7 +139,8 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     CanvTimeDistribution -> Divide(2, 2);
 
     //create histograms for output
-    TH2F* xy = new TH2F("xy", "GEM hits", 140, 0, 140, 40, 0, 40);
+    TH2F* xy1 = new TH2F("xy1", "GEM1 hits", 140, 0, 140, 40, 0, 40);
+    TH2F* xy2 = new TH2F("xy2", "GEM2 hits", 140, 0, 140, 40, 0, 40);
     TH2F* xys = new TH2F("xys", "GEM hits with SiPM", 140, 0, 140, 40, 0, 40); //Need??//
     TH2F* xyev = new TH2F("xyev", "GEM hits per Event", 140, 0, 140, 40, 0, 40);
     TH1F* htrg1 = new TH1F("htrg1", "MCP PMT spectra", 4096, 0, 4096);
@@ -145,8 +158,9 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
    //selection conditions for trgMCP and DAQ
     TString Conditions_1 = "(exbeamdata.chtrg2r.ped - exbeamdata.chtrg2r.min) > 300 && (exbeamdata.chtrg2r.ped - exbeamdata.chtrg2r.min) < 900 && (exbeamdata.chtrg1r.ped - exbeamdata.chtrg1r.min) > 300 && (exbeamdata.chtrg1r.ped - exbeamdata.chtrg1r.min) < 900 && daq.lecroy2249.ch0 > 800 && daq.lecroy2249.ch0 < 1600";
     //selection conditions for GEM
-    TString Conditions_coor = "detClusters.x[2] > 40 &&  detClusters.x[2] < 49 && detClusters.y[2] >" + y_boundLeft + " &&  detClusters.y[2] <" + y_boundRight;
-    TString Conditions_all = Conditions_1 + " && " + Conditions_coor;
+    TString Conditions_coor1 = "detClusters.x[2] > 37 &&  detClusters.x[2] < 45 && detClusters.y[2] >" + y_boundLeft + " &&  detClusters.y[2] <" + y_boundRight;
+    TString Conditions_coor2 = "detClusters.x[3] > 65 &&  detClusters.x[3] < 74 && detClusters.y[3] >" + y_boundLeft + " &&  detClusters.y[3] <" + y_boundRight;
+    TString Conditions_all = Conditions_1 + " && " + Conditions_coor1 + "&&" + Conditions_coor2;
 
     CanvAmp -> cd(1);
     //Amplitude of min in trigger per event
@@ -164,8 +178,11 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
 
     //Map of hits GEM
     CanvGeom -> cd(1);
-    exbeamdata -> Draw("detClusters.y[2]:detClusters.x[2] >> xy", Conditions_1,"");
-    xy -> Draw("colz");
+    exbeamdata -> Draw("detClusters.y[2]:detClusters.x[2] >> xy1", Conditions_1,"");
+    xy1 -> Draw("colz");  
+    CanvGeom -> cd(2);
+    exbeamdata -> Draw("detClusters.y[3]:detClusters.x[3] >> xy2", Conditions_1,"");
+    xy2 -> Draw("colz");
     CanvGeom -> Update();
 
     TProfile* amp = new TProfile("amp", "a(t) for MCP ", 1024, 1. / 1024, 0.2 * 1024);
@@ -190,6 +207,7 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     if (exbeamdata -> GetEntries() < nev) nev = exbeamdata -> GetEntries();
     cout << nev << endl;
     //MAIN LOOP
+    //for (int i = 0; i < 1; i++){
     for (int i = 0; i < nev; i++){
     	if (!(i > nev1 && i < nev2)) {
         	exbeamdata -> Draw("(exbeamdata.ch1r.ped - exbeamdata.ch1.amp):exbeamdata.ch1.ti / 5. >> ampf", Conditions_all , "goff", 1, i);
@@ -241,7 +259,7 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
             		 Float_t minbintrg2 = amptrg2 -> GetMinimumBin();
             		 Float_t mintrg2 = amptrg2 -> GetMinimum();
 
-            		 CanvGeom -> cd(2);
+            		 CanvGeom -> cd(3);
             		 exbeamdata -> Draw("detClusters.y[2]:detClusters.x[2] >> +xys", Conditions_all, "goff", 1, i);
             		 exbeamdata -> Draw("detClusters.y[2]:detClusters.x[2] >> xyev", Conditions_all, "goff", 1, i);
             		 exbeamdata -> Draw("detClusters.y[2]:detClusters.x[2] >> +xyf", Conditions_all, "goff", 1, i);
@@ -312,7 +330,7 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     }
     CanvTimeDistribution -> cd(1);  
     ht -> Draw("");
-    CanvGeom -> cd(2);
+    CanvGeom -> cd(3);
     xys -> Draw("text, colz");
     xyf -> Draw("box, same");
     CanvAmp -> cd(2);
@@ -337,6 +355,7 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     TimeVSAmplitude -> Draw("");
     
     CanvTimeDistribution -> cd(4);
+    /*
     TF1* GaussBKG = new TF1("GaussBKG", "[0] * exp(-((x - [1]) / [2]) * ((x - [1]) / [2]) / 2) + [3]", -10, 10);
     GaussBKG -> SetParLimits(0, 1, 100);
     GaussBKG -> SetParLimits(1, 5, 10);
@@ -352,6 +371,21 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     Double_t Mean_Error = GaussBKG -> GetParError(1);
     Double_t Sigma = GaussBKG -> GetParameter(2);
     Double_t Sigma_Error = GaussBKG -> GetParError(2);
+    */
+    TF1* Gaus = new TF1("Gaus", "[0] * exp(-0.5*pow((x-[1])/[2],2))", -10, 10);
+    Gaus -> SetParLimits(0, 1, 100);
+    Gaus -> SetParLimits(1, 5, 10);
+    Gaus -> SetParLimits(2, 0.1, 1);
+    Gaus -> SetParameter(0, 1);
+    Gaus -> SetParameter(1, Time -> GetMean());
+    Gaus -> SetParameter(2, 0.1);
+    Time -> Draw("");
+    Time -> Fit(Gaus, "W", "S", -10, 10);
+    Double_t Mean = Gaus -> GetParameter(1);
+    Double_t Mean_Error = Gaus -> GetParError(1);
+    Double_t Sigma = Gaus -> GetParameter(2);
+    Double_t Sigma_Error = Gaus -> GetParError(2);
+ 
     ofstream of(outDir + name + "_res_" + y_boundLeft + "-"+ y_boundRight + ".dat",ios_base::out);   
     of<<Mean<<"\t"<<Mean_Error<<"\t"<<Sigma<<"\t"<<Sigma_Error<<endl;
     of.close();

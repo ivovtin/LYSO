@@ -39,6 +39,15 @@ htrg -> амплитуда тригерного МКП в каналах (wave_0
 htest1 -> амплитуда iMCP(ch1)(wave_4.dat) -> амплитуда прототипа с вычетом пьедестала <br />
 ttsimcp1 -> TTS iMCP(T_iMCP-T_MCPPMT -> время между триггером и прототипом <br />
 
+ovtin@stark02 LYSO]$ root -l /home/chizhik/root/2019-06-07_LYSO/2019-06-07_18-53-23/mcplyso2019-06-07_18-53.root <br />
+root [0]  <br />
+Attaching file /home/chizhik/root/2019-06-07_LYSO/2019-06-07_18-53-23/mcplyso2019-06-07_18-53.root as _file0... <br />
+(TFile *) 0x1e68c90 <br />
+root [1] new TBrowser <br />
+root [3] exbeamdata->Draw("exbeamdata.ch1.ti") <br />
+root [4] exbeamdata->Draw("exbeamdata.ch1.amp:exbeamdata.ch1.ti") <br />
+root [5] exbeamdata->Draw("exbeamdata.ch1.amp:exbeamdata.ch1.ti","exbeamdata.ch1.number==500","")
+
 ## Сдруживание деревьев
 
 root -l test_gem.root <br />
