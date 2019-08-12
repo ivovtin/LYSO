@@ -5,6 +5,7 @@ TF1* Init_Aprox(Int_t num, const char* name) {
      	f -> SetParName(1, "Angle");
      	f -> SetParLimits(1, num, 0);
 	f -> SetTitle(name);
+        f -> SetLineColor(kRed);
 	return f;
 }
 
@@ -158,9 +159,10 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
    //selection conditions for trgMCP and DAQ
     TString Conditions_1 = "(exbeamdata.chtrg2r.ped - exbeamdata.chtrg2r.min) > 300 && (exbeamdata.chtrg2r.ped - exbeamdata.chtrg2r.min) < 900 && (exbeamdata.chtrg1r.ped - exbeamdata.chtrg1r.min) > 300 && (exbeamdata.chtrg1r.ped - exbeamdata.chtrg1r.min) < 900 && daq.lecroy2249.ch0 > 800 && daq.lecroy2249.ch0 < 1600";
     //selection conditions for GEM
-    TString Conditions_coor1 = "detClusters.x[2] > 37 &&  detClusters.x[2] < 45 && detClusters.y[2] >" + y_boundLeft + " &&  detClusters.y[2] <" + y_boundRight;
+    TString Conditions_coor1 = "detClusters.x[2] > 36 &&  detClusters.x[2] < 48 && detClusters.y[2] >" + y_boundLeft + " &&  detClusters.y[2] <" + y_boundRight;
     TString Conditions_coor2 = "detClusters.x[3] > 65 &&  detClusters.x[3] < 74 && detClusters.y[3] >" + y_boundLeft + " &&  detClusters.y[3] <" + y_boundRight;
-    TString Conditions_all = Conditions_1 + " && " + Conditions_coor1 + "&&" + Conditions_coor2;
+    //TString Conditions_all = Conditions_1 + " && " + Conditions_coor1 + "&&" + Conditions_coor2;
+    TString Conditions_all = Conditions_1 + " && " + Conditions_coor1;
 
     CanvAmp -> cd(1);
     //Amplitude of min in trigger per event
@@ -211,15 +213,16 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     for (int i = 0; i < nev; i++){
     	if (!(i > nev1 && i < nev2)) {
         	exbeamdata -> Draw("(exbeamdata.ch1r.ped - exbeamdata.ch1.amp):exbeamdata.ch1.ti / 5. >> ampf", Conditions_all , "goff", 1, i);
- 		ampf -> SetAxisRange(2, 20, "X");
+ 		ampf -> SetAxisRange(2, 20, "X");     //pedestal from first 20 ns
         	Float_t pedmax = ampf -> GetMaximum();
         	Float_t pedmin = ampf -> GetMinimum();
-        	ampf -> SetAxisRange(2, 200, "X");
+        	ampf -> SetAxisRange(2, 200, "X");    //range with signal
         	Float_t MaximumSignalBin = ampf -> GetMaximumBin();
-        	Float_t MaximumSignal = ampf -> GetMaximum();
-		Float_t FirstSignalBin = ampf -> FindFirstBinAbove(pedmax + MaximumSignal * 0.2, 1);
-		Float_t HalfHeightBinLeft = ampf -> FindFirstBinAbove(MaximumSignal / 2.0, 1);
-		Float_t HalfHeightBinRight = ampf -> FindLastBinAbove(MaximumSignal / 2.0, 1); //MaximumSignalBin);
+     	        Float_t MaximumSignal = ampf -> GetMaximum();
+		//cout<<"MaximumSignalBin="<<MaximumSignalBin<<"\t"<<"MaximumSignal="<<MaximumSignal<<"\t"<<"Event="<<i<<endl;
+        	Float_t FirstSignalBin = ampf -> FindFirstBinAbove(pedmax + MaximumSignal * 0.2, 1); //20% from Maximum signal plus maximum of pedestal
+		Float_t HalfHeightBinLeft = ampf -> FindFirstBinAbove(MaximumSignal / 2.0, 1);  //50% from from Maximum signal
+		Float_t HalfHeightBinRight = ampf -> FindLastBinAbove(MaximumSignal / 2.0, 1); 
 		
 		exbeamdata -> Draw("(sipm.ch1.amp - sipm.ch1r.ped):sipm.ch1.ti / 5. >> ampfsi", Conditions_all , "goff", 1, i);
  		ampfsi -> SetAxisRange(2, 20, "X");
@@ -231,86 +234,82 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
 		Float_t FirstSignalBin_Si = ampfsi -> FindFirstBinAbove(pedmax_Si + MaximumSignal_Si * 0.1, 1);
 		Float_t HalfHeightBinLeft_Si = ampfsi -> FindFirstBinAbove(MaximumSignal_Si / 2.0, 1);
 		Float_t HalfHeightBinRight_Si = ampfsi -> FindLastBinAbove(MaximumSignal_Si / 2.0, 1);
+                        //conditions from MCP waveform 
 			if (FirstSignalBin - MaximumSignalBin < 0 && MaximumSignalBin > 100 && MaximumSignal > 2 * (pedmax - pedmin) && (HalfHeightBinRight - HalfHeightBinLeft) > 10 && MaximumSignalBin < 350){
 	    		 exbeamdata -> Draw("exbeamdata.ch1.amp:exbeamdata.ch1.ti / 5. >> amp", Conditions_all, "goff", 1, i);
 	    		 exbeamdata -> Draw("sipm.ch1.amp:sipm.ch1.ti / 5. >> ampsi", Conditions_all, "goff", 1, i);
            		 exbeamdata -> Draw("exbeamdata.chtrg1.amp:exbeamdata.chtrg1.ti / 5. >> amptrg1", Conditions_all, "goff", 1, i);
             		 exbeamdata -> Draw("exbeamdata.chtrg2.amp:exbeamdata.chtrg2.ti / 5. >> amptrg2", Conditions_all, "goff", 1, i);
-
+                         
+                         //mcp
             		 amp -> SetAxisRange(2, 20, "X");
             		 Float_t ped = amp -> GetMean(2);
             		 amp -> SetAxisRange(2, 200, "X");
             		 Float_t min = amp -> GetMinimum();
-
+                         //sipm
 			 ampsi -> SetAxisRange(2, 20, "X");
             		 Float_t ped_Si = ampsi -> GetMean(2);
             		 ampsi -> SetAxisRange(2, 200, "X");
             		 Float_t min_Si = ampsi -> GetMinimum();
-           
+                         //trgmcp1
 	   		 amptrg1 -> SetAxisRange(2, 20, "X");
             		 Float_t pedtrg = amptrg1 -> GetMean(2);
             		 amptrg1 -> SetAxisRange(2, 200, "X");
             		 Float_t minbintrg = amptrg1 -> GetMinimumBin();
             		 Float_t mintrg = amptrg1 -> GetMinimum();
-
+                         //trgmcp2
    		         amptrg2 -> SetAxisRange(2, 20, "X");
 	            	 Float_t pedtrg2 = amptrg2 -> GetMean(2);
             		 amptrg2 -> SetAxisRange(2, 200, "X");
             		 Float_t minbintrg2 = amptrg2 -> GetMinimumBin();
             		 Float_t mintrg2 = amptrg2 -> GetMinimum();
-
+                         //gem
             		 CanvGeom -> cd(3);
             		 exbeamdata -> Draw("detClusters.y[2]:detClusters.x[2] >> +xys", Conditions_all, "goff", 1, i);
             		 exbeamdata -> Draw("detClusters.y[2]:detClusters.x[2] >> xyev", Conditions_all, "goff", 1, i);
             		 exbeamdata -> Draw("detClusters.y[2]:detClusters.x[2] >> +xyf", Conditions_all, "goff", 1, i);
 
+                         //the time calculation for trgmcp1 and trgmcp2	
             		 funtrg -> SetParameter(0, pedtrg);
             		 funtrg -> SetParameter(1, -2000);
  	    		 funtrg2 -> SetParameter(0, pedtrg2);
             		 funtrg2 -> SetParameter(1, -2000);
-            		 amptrg1 -> Fit(funtrg, "W", "S", (minbintrg - 5.5) /5., (minbintrg - 1.5) / 5.);
-            		 amptrg2 -> Fit(funtrg2,"W", "S", (minbintrg2 - 5.5) / 5., (minbintrg2 - 1.5) / 5.);
-	    		 
-                         //calculation the time for trgmcp1 and trgmcp2
-			 Float_t tcrtrg1 = (-1 / 2 * (pedtrg - mintrg) + pedtrg - funtrg -> GetParameter(0)) / (funtrg -> GetParameter(1));
-	    		 Float_t tcrtrg2 = (-1 / 2 * (pedtrg2 - mintrg2) + pedtrg2 - funtrg2 -> GetParameter(0)) / (funtrg2 -> GetParameter(1));
-            		 
+            		 amptrg1 -> Fit(funtrg, "W", "S", (minbintrg - 5.5) /5., (minbintrg - 1.5) / 5.);     //fit in range  
+            		 amptrg2 -> Fit(funtrg2,"W", "S", (minbintrg2 - 5.5) / 5., (minbintrg2 - 1.5) / 5.);	    		 
+                         //we find the solution to the intersection of lines: y=[0]+[1]*x and y=const
+           		 Float_t tcrtrg1 = (-0.35 * (pedtrg - mintrg) + pedtrg - funtrg -> GetParameter(0)) / (funtrg -> GetParameter(1));
+	    		 Float_t tcrtrg2 = (-0.35 * (pedtrg2 - mintrg2) + pedtrg2 - funtrg2 -> GetParameter(0)) / (funtrg2 -> GetParameter(1));
+            		 cout<<"tcrtrg1="<<tcrtrg1<<"\t"<<"Event="<<i<<endl;
+
+ 	                 //time of MCP	
 			 fun -> SetParameter(0, ped);
             		 fun -> SetParameter(1, -200);
-            		 amp -> Fit(fun, "W", "S", (FirstSignalBin - 0.5) / 5., (FirstSignalBin + 4) / 5.);
-			 
+            		 //amp -> Fit(fun, "W", "S", (FirstSignalBin - 0.5) / 5., (FirstSignalBin + 4) / 5.);
+            		 amp -> Fit(fun, "W", "S", (FirstSignalBin - 2.5) / 5., (FirstSignalBin + 4) / 5.);
+          		 Float_t tcr = (-0.35 * (ped - min) + ped - fun -> GetParameter(0)) / (fun -> GetParameter(1));
+            		 cout<<"tcr="<<tcr<<"\t"<<"Event="<<i<<endl;
+ 
+           		 //time of SIPM 		 
 			 CanvAmp -> cd(5);
 			 funsi -> SetParameter(0, pedtrg);
             		 funsi -> SetParameter(1, -2000);
 			 ampsi -> Fit(funsi, "W", "S", (FirstSignalBin_Si - 10) / 5., (FirstSignalBin_Si + 25) / 5.);
+			 Float_t tcr_Si = (-0.35 * (ped_Si - min_Si) + ped_Si - funsi -> GetParameter(0)) / (funsi-> GetParameter(1));
 
-            //======================
-
-            		 //time of MCP
-			 Float_t tcr = (-0.5 * (ped - min) + ped - fun -> GetParameter(0)) / (fun -> GetParameter(1));
-            		 //time of SIPM
- 			 Float_t tcr_Si = (-0.5 * (ped_Si - min_Si) + ped_Si - funsi -> GetParameter(0)) / (funsi-> GetParameter(1));
-
-            //======================
-
-            	//	 cout << "Max_bin:" << MaximumSignalBin << "\tAmp:" << (ped - min) << "\tHalfbin:" << halfbin << "\tTcr:" << tcr << endl;
-            	//	 cout << "Min_bin:" << minbintrg << "\tAmp(TRG):" << (pedtrg - mintrg) << "\tMin(TRG):" << mintrg << "\tTcr(TRG):" << tcrtrg1 << endl;
-	    	//	 cout << "tcr = "<<  tcr << "tcrtrg1 = " << tcrtrg1 << endl;
-
-            //======================
+                         //======================
 
             	 	 if ( (xyf -> GetEntries() - nentries) == 1 ) nentries = xyf -> GetEntries();
             		 for (int i = 0; i < amp -> GetNbinsX(); i++) {
                 		 ampavg -> Fill(amp -> GetBinCenter(i) - tcrtrg1 + 60, amp -> GetBinContent(i));
             		 }
             		 
-            //======================
+                         //======================
                          //time between MCP and first Trg MCP
             		 ht -> Fill(tcr - tcrtrg1);          		 
                          //time between SIPM and first Trg MCP
 			 htsi -> Fill(tcr_Si - tcrtrg1);
 
-            	//	 cout << "dT=" << (tcr - tcrtrg1) << endl;
+            	         //cout << "dT=" << (tcr - tcrtrg1) << endl;
             		 if ((tcr - tcrtrg1) < 15 && (tcr - tcrtrg1) > -2) {
                 	 	dtvsxy -> Fill(xyev -> GetMean(1), xyev -> GetMean(2), tcr - tcrtrg1);
             	  	 }
@@ -334,16 +333,25 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     xys -> Draw("text, colz");
     xyf -> Draw("box, same");
     CanvAmp -> cd(2);
+    amptrg1->GetXaxis()->SetTitle("Time, ns");
     amptrg1 -> Draw("");
     CanvAmp -> cd(3);
+    amptrg2->GetXaxis()->SetTitle("Time, ns");
     amptrg2 -> Draw("");
     CanvAmp -> cd(4);
+    amp->GetXaxis()->SetTitle("Time, ns");
     amp -> Draw("");
+    amptrg1 -> SetLineColor(kBlue);
+    amptrg1 -> Draw("same");
     CanvAmp -> cd(5);
+    ampsi->GetXaxis()->SetTitle("Time, ns");
     ampsi -> Draw("");
+    amptrg1 -> SetLineColor(kBlue);
+    amptrg1 -> Draw("same");
     CanvTimeDistribution -> cd(2);
     htsi -> Draw("");
     CanvAmp -> cd(6);
+    ampavg->GetXaxis()->SetTitle("Time, ns");
     ampavg -> Draw("");
     CanvGeom -> cd(4);    
     TimeVSx -> Draw("");
