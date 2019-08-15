@@ -371,6 +371,7 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
                           FitBin1sipm = maxbinsipm-j4;
                           binContent = ampsi -> GetBinContent(FitBin1sipm);                                                  
                          }
+                         /*  
                          Int_t Bin3sipm=FitBin1sipm;
                          for(Bin3sipm; Bin3sipm<350.; Bin3sipm++)
 			 {  
@@ -381,7 +382,9 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
                             break;
                            }  			    
 			 }
-                         Int_t FitBin2sipm=Bin3sipm-7.0; 
+                         Int_t FitBin2sipm=Bin3sipm-7.0;
+                         */ 
+                         Int_t FitBin2sipm=(maxbinsipm+FitBin1sipm)/12+FitBin1sipm; 
         		 ampsi -> Fit(funsi, "W", "S", (FitBin1sipm - 0.5) / 5., FitBin2sipm/5.);
 			 Float_t tcr_Si = (-0.35 * (ped_Si - ampsi -> GetBinContent(FitBin2sipm)) + ped_Si - funsi -> GetParameter(0)) / (funsi-> GetParameter(1));
             		 cout<<"tcr_Si="<<tcr_Si<<"\t"<<"Event="<<i<<endl;
@@ -473,7 +476,7 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     TF1* Gaus = new TF1("Gaus", "[0] * exp(-0.5*pow((x-[1])/[2],2))", -10, 10);
     Gaus -> SetParLimits(0, 1, 100);
     //Gaus -> SetParLimits(1, 5, 10);
-    Gaus -> SetParLimits(1, 0, 10);
+    Gaus -> SetParLimits(1, -7, 7);
     Gaus -> SetParLimits(2, 0.1, 1);
     Gaus -> SetParameter(0, 1);
     Gaus -> SetParameter(1, Time -> GetMean());
