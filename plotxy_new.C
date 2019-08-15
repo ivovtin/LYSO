@@ -135,9 +135,9 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     TCanvas* CanvGeom = new TCanvas("CanvGeom", "Geometry(" + y_boundLeft + " - " + y_boundRight + ")", 1500, 600, 600, 600);
     CanvGeom -> Divide(2, 4);
     TCanvas* CanvAmp = new TCanvas("CanvAmp", "Amplitude distributions(" + y_boundLeft + " - " + y_boundRight + ")", 1000, 600, 600, 600);
-    CanvAmp -> Divide(2, 3);
+    CanvAmp -> Divide(3, 3);
     TCanvas* CanvTimeDistribution = new TCanvas("CanvTimeDistribution", "Time distribution(" + y_boundLeft + " - " + y_boundRight + ")", 500, 600, 600, 600);
-    CanvTimeDistribution -> Divide(2, 2);
+    CanvTimeDistribution -> Divide(3, 2);
 
     //create histograms for output
     TH2F* xy1 = new TH2F("xy1", "GEM1 hits", 140, 0, 140, 40, 0, 40);
@@ -161,9 +161,11 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     TString Conditions_1 = "(exbeamdata.chtrg2r.ped - exbeamdata.chtrg2r.min) > 300 && (exbeamdata.chtrg2r.ped - exbeamdata.chtrg2r.min) < 900 && (exbeamdata.chtrg1r.ped - exbeamdata.chtrg1r.min) > 300 && (exbeamdata.chtrg1r.ped - exbeamdata.chtrg1r.min) < 900 && daq.lecroy2249.ch0 > 800 && daq.lecroy2249.ch0 < 1600";
     //selection conditions for GEM
     TString Conditions_coor1 = "detClusters.x[2] > 36 &&  detClusters.x[2] < 48 && detClusters.y[2] >" + y_boundLeft + " &&  detClusters.y[2] <" + y_boundRight;
-    TString Conditions_coor2 = "detClusters.x[3] > 65 &&  detClusters.x[3] < 74 && detClusters.y[3] >" + y_boundLeft + " &&  detClusters.y[3] <" + y_boundRight;
+    //TString Conditions_coor2 = "detClusters.x[3] > 65 &&  detClusters.x[3] < 74 && detClusters.y[3] >" + y_boundLeft + " &&  detClusters.y[3] <" + y_boundRight;
+    //TString Conditions_2 = "(exbeamdata.ch1r.max-exbeamdata.ch1r.ped)>15.0"; 
     //TString Conditions_all = Conditions_1 + " && " + Conditions_coor1 + "&&" + Conditions_coor2;
     TString Conditions_all = Conditions_1 + " && " + Conditions_coor1;
+    //TString Conditions_all = Conditions_1 + " && " + Conditions_coor1 + " && " + Conditions_2;
 
     CanvAmp -> cd(1);
     //Amplitude of min in trigger per event
@@ -194,11 +196,15 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
 
     TProfile* ampsi = new TProfile("ampsi", "a(t) for SiPM", 1024, 1. / 1024, 0.2 * 1024);
     TProfile* ampfsi = new TProfile("ampfsi", "a(t)f for SiPM", 1024, 1. / 1024, 0.2 * 1024);
+    TProfile* ampsiavg = new TProfile("ampsiavg", "Average a(t) for SiPM", 1024, 1. / 1024, 0.2 * 1024);
 
     TProfile* amptrg1 = new TProfile("amptrg1", "a1(t) for trgmcp1", 1024, 1. / 1024, 0.2 * 1024);
     TProfile* amptrg2 = new TProfile("amptrg2", "a2(t) for trgmcp2", 1024, 1. / 1024, 0.2 * 1024);
 
     TProfile2D* dtvsxy = new TProfile2D("dtvsxy", "#Delta T vs XY", 140, 0, 140, 40, 0, 40);
+
+    TH2F* avstmcp=new TH2F("avstmcp","A(t) for MCP",110,-60,170,4096,0,4096);
+    TH2F* avstsipm=new TH2F("avstsipm","A(t) for SiPM",110,-60,170,4096,0,4096);
 
     //Aproximations for signal
     TF1* fun = Init_Aprox(200000, "fun");             //mcp
@@ -241,7 +247,7 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
 	    		 exbeamdata -> Draw("sipm.ch1.amp:sipm.ch1.ti / 5. >> ampsi", Conditions_all, "goff", 1, i);
            		 exbeamdata -> Draw("exbeamdata.chtrg1.amp:exbeamdata.chtrg1.ti / 5. >> amptrg1", Conditions_all, "goff", 1, i);
             		 exbeamdata -> Draw("exbeamdata.chtrg2.amp:exbeamdata.chtrg2.ti / 5. >> amptrg2", Conditions_all, "goff", 1, i);
-                         
+                        
                          //mcp
             		 amp -> SetAxisRange(30, 45, "X");
             		 Float_t ped = amp -> GetMean(2);
@@ -320,8 +326,8 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
                          Int_t FitBin2trg2=Bin3trg2-4.; 
             		 amptrg2 -> Fit(funtrg2, "W", "S", FitBin1trg2/5., FitBin2trg2/5.);     //fit in range  
                          //we find the solution to the intersection of lines: y=[0]+[1]*x and y=const
-            		 Float_t tcrtrg1 = (-0.35 * (pedtrg1 - mintrg) + pedtrg1 - funtrg -> GetParameter(0)) / (funtrg -> GetParameter(1));
-	    		 Float_t tcrtrg2 = (-0.35 * (pedtrg2 - mintrg2) + pedtrg2 - funtrg2 -> GetParameter(0)) / (funtrg2 -> GetParameter(1));
+            		 Float_t tcrtrg1 = (-0.50 * (pedtrg1 - mintrg) + pedtrg1 - funtrg -> GetParameter(0)) / (funtrg -> GetParameter(1));
+	    		 Float_t tcrtrg2 = (-0.50 * (pedtrg2 - mintrg2) + pedtrg2 - funtrg2 -> GetParameter(0)) / (funtrg2 -> GetParameter(1));
             		 cout<<"tcrtrg1="<<tcrtrg1<<"\t"<<"Event="<<i<<endl;
             		 cout<<"tcrtrg2="<<tcrtrg2<<"\t"<<"Event="<<i<<endl;
 
@@ -353,7 +359,7 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
                          cout<<"amp -> GetBinContent(Bin1mcp)="<<amp -> GetBinContent(Bin2mcp-8)<<"\t"<<"amp -> GetBinContent(Bin2mcp)="<<amp -> GetBinContent(Bin2mcp)<<endl; 	
            		 cout<<"FitBin1mcp="<<FitBin1mcp/5.<<"\t"<<"FitBin2mcp="<<FitBin2mcp/5.<<endl;
                            
-                         Float_t tcr = (-0.35 * (ped - min) + ped - fun -> GetParameter(0)) / (fun -> GetParameter(1));
+                         Float_t tcr = (-0.50 * (ped - min) + ped - fun -> GetParameter(0)) / (fun -> GetParameter(1));
             		 cout<<"tcr="<<tcr<<"\t"<<"Event="<<i<<endl;
  
            		 //time of SIPM 		 
@@ -386,14 +392,20 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
                          */ 
                          Int_t FitBin2sipm=(maxbinsipm+FitBin1sipm)/12+FitBin1sipm; 
         		 ampsi -> Fit(funsi, "W", "S", (FitBin1sipm - 0.5) / 5., FitBin2sipm/5.);
-			 Float_t tcr_Si = (-0.35 * (ped_Si - ampsi -> GetBinContent(FitBin2sipm)) + ped_Si - funsi -> GetParameter(0)) / (funsi-> GetParameter(1));
+			 Float_t tcr_Si = (-0.50 * (ped_Si - ampsi -> GetBinContent(FitBin2sipm)) + ped_Si - funsi -> GetParameter(0)) / (funsi-> GetParameter(1));
             		 cout<<"tcr_Si="<<tcr_Si<<"\t"<<"Event="<<i<<endl;
 
                          //======================
+			 exbeamdata -> Draw("(exbeamdata.ch1r.ped-exbeamdata.ch1r.min):(exbeamdata.ch1r.tmin-exbeamdata.chtrg2r.tmin)/5>>+avstmcp",Conditions_all, "goff", 1, i); 
+			 exbeamdata -> Draw("(sipm.ch1r.max-sipm.ch1r.ped):(sipm.ch1r.tmax-sipm.chtrg2r.tmin)/5>>+avstsipm",Conditions_all, "goff", 1, i); 
+
 
             	 	 if ( (xyf -> GetEntries() - nentries) == 1 ) nentries = xyf -> GetEntries();
-            		 for (int i = 0; i < amp -> GetNbinsX(); i++) {
-                		 ampavg -> Fill(amp -> GetBinCenter(i) - tcrtrg1 + 60, amp -> GetBinContent(i));
+             		 for (int i = 0; i < amp -> GetNbinsX(); i++) {
+                		 ampavg -> Fill(amp -> GetBinCenter(i) - tcrtrg2 + 60, amp -> GetBinContent(i));
+            		 }
+            		 for (int i = 0; i < ampsi -> GetNbinsX(); i++) {
+                		 ampsiavg -> Fill(ampsi -> GetBinCenter(i) - tcrtrg2 + 60, ampsi -> GetBinContent(i));
             		 }
             		 
                          //======================
@@ -446,6 +458,9 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     CanvAmp -> cd(6);
     ampavg->GetXaxis()->SetTitle("Time, ns");
     ampavg -> Draw("");
+    CanvAmp -> cd(7);
+    ampsiavg->GetXaxis()->SetTitle("Time, ns");
+    ampsiavg -> Draw("");
     CanvGeom -> cd(4);    
     TimeVSx -> Draw("");
     CanvGeom -> cd(5);
@@ -476,7 +491,7 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     TF1* Gaus = new TF1("Gaus", "[0] * exp(-0.5*pow((x-[1])/[2],2))", -10, 10);
     Gaus -> SetParLimits(0, 1, 100);
     //Gaus -> SetParLimits(1, 5, 10);
-    Gaus -> SetParLimits(1, -7, 7);
+    Gaus -> SetParLimits(1, -5, 5);
     Gaus -> SetParLimits(2, 0.1, 1);
     Gaus -> SetParameter(0, 1);
     Gaus -> SetParameter(1, Time -> GetMean());
@@ -492,6 +507,11 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     ofstream of(outDir + name + "_res_" + y_boundLeft + "-"+ y_boundRight + ".dat",ios_base::out);   
     of<<Mean<<"\t"<<Mean_Error<<"\t"<<Sigma<<"\t"<<Sigma_Error<<endl;
     of.close();
+
+    CanvTimeDistribution -> cd(5);
+    avstmcp -> Draw("colz");
+    CanvTimeDistribution -> cd(6);
+    avstsipm -> Draw("colz");
 
     CanvAmp -> Update();
     CanvGeom -> Update();
