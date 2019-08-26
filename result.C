@@ -1,21 +1,31 @@
 void result()
-{ 
+{
+  gStyle->SetOptTitle(0); 
   gStyle->SetOptStat(1);
   gStyle->SetOptFit(1);
-  gROOT->SetStyle("Plain");
-  gStyle -> SetPalette(1);
-  TCanvas *c = new TCanvas("c","c",1400, 800);
+  //gROOT->SetStyle("Plain");
+  gStyle->SetPalette(1);
+  gStyle->SetPadGridX(kTRUE);
+  gStyle->SetPadGridY(kTRUE);
+  TCanvas *c = new TCanvas("c","c",1000, 1000);
   c->Divide(2,4);
+  auto legend = new TLegend(0.1,0.7,0.30,0.9);
 
   int y1, y2;
   Double_t var1, var2, var3, var4;
   std::vector< float > Mean, Mean_Error, Sigma, Sigma_Error, Ycoor, Ycoor_Error;
- 
-  for( int i=0; i<=12; i+=3 )
+  
+  //Int_t n=12, step=3; //
+  Int_t n=1,  step=5; //from 14-22 
+  //int y11=14, y2=17;
+  int y11=14, y22=28;
+
+  for( int i=0; i<=n; i+=step )
   {
-      y1=14+i;
-      y2=17+i;
-      ifstream res(TString::Format("/home/ovtin/development/LYSO/out/lysozero_res_%d-%d.dat",y1,y2).Data());
+      y1=y11+i;
+      y2=y22+i;
+      //ifstream res(TString::Format("/home/ovtin/development/LYSO/out/lysozero_res_%d-%d.dat",y1,y2).Data());
+      ifstream res(TString::Format("/home/ovtin/development/LYSO/out/out1_trh0.30/lysozero(%d-%d)_CanvTimeDistribution.root_res_.dat",y1,y2).Data());
       string s;
       while( getline(res, s) )
       {
@@ -68,11 +78,12 @@ void result()
   //vector becomes empty 
   cout<<" "<<endl;
 
-  for( int i=0; i<=12; i+=3 )
+  for( int i=0; i<=n; i+=step )
   {
-      y1=14+i;
-      y2=17+i;
-      ifstream res(TString::Format("/home/ovtin/development/LYSO/out/lyso30plus_res_%d-%d.dat",y1,y2).Data());
+      y1=y11+i;
+      y2=y22+i;
+      //ifstream res(TString::Format("/home/ovtin/development/LYSO/out/lyso30plus_res_%d-%d.dat",y1,y2).Data());
+      ifstream res(TString::Format("/home/ovtin/development/LYSO/out/out1_trh0.30/lyso30plus(%d-%d)_CanvTimeDistribution.root_res_.dat",y1,y2).Data());
       string s;
       while( getline(res, s) )
       {
@@ -125,11 +136,12 @@ void result()
   //vector becomes empty 
   cout<<" "<<endl;
 
-  for( int i=0; i<=12; i+=3 )
+  for( int i=0; i<=n; i+=step )
   {
-      y1=14+i;
-      y2=17+i;
-      ifstream res(TString::Format("/home/ovtin/development/LYSO/out/lyso30minus_res_%d-%d.dat",y1,y2).Data());
+      y1=y11+i;
+      y2=y22+i;
+      //ifstream res(TString::Format("/home/ovtin/development/LYSO/out/lyso30minus_res_%d-%d.dat",y1,y2).Data());
+      ifstream res(TString::Format("/home/ovtin/development/LYSO/out/out1_trh0.30/lyso30minus(%d-%d)_CanvTimeDistribution.root_res_.dat",y1,y2).Data());
       string s;
       while( getline(res, s) )
       {
@@ -184,13 +196,29 @@ void result()
   float angle;
   std::vector< float > vecangle;
   Int_t k=1;
-  for( int i=0; i<=12; i+=3 )
+  Float_t trh;
+  for( int j=0; j<3; j++ )
   {
+     //if(j==0){trh=0.20;};
+     //if(j==1){trh=0.25;};
+     if(j==0){trh=0.30;};
+     //if(j==3){trh=0.35;};
+     //if(j==4){trh=0.40;};
+     if(j==1){trh=0.50;};
+     //if(j==6){trh=0.60;};
+     if(j==2){trh=0.70;};
+     //if(j==8){trh=0.80;};
+   
+  cout<<"trh="<<trh<<endl;
+
+    for( int i=0; i<=n; i+=step )
+    {
       k++;
       cout<<k<<endl;
-      y1=14+i;
-      y2=17+i;
-      ifstream res1(TString::Format("/home/ovtin/development/LYSO/out/lyso30minus_res_%d-%d.dat",y1,y2).Data());
+      y1=y11+i;
+      y2=y22+i;
+      //ifstream res1(TString::Format("/home/ovtin/development/LYSO/out/lyso30minus_res_%d-%d.dat",y1,y2).Data());
+      ifstream res1(TString::Format("/home/ovtin/development/LYSO/out/out1_trh%.2f/lyso30minus(%d-%d)_CanvTimeDistribution.root_res_.dat",trh,y1,y2).Data());
       string s1;
       while( getline(res1, s1) )
       {
@@ -207,7 +235,8 @@ void result()
      }
       res1.close();
 
-      ifstream res2(TString::Format("/home/ovtin/development/LYSO/out/lysozero_res_%d-%d.dat",y1,y2).Data());
+      //ifstream res2(TString::Format("/home/ovtin/development/LYSO/out/lysozero_res_%d-%d.dat",y1,y2).Data());
+      ifstream res2(TString::Format("/home/ovtin/development/LYSO/out/out1_trh%.2f/lysozero(%d-%d)_CanvTimeDistribution.root_res_.dat",trh,y1,y2).Data());
       string s2;
       while( getline(res2, s2) )
       {
@@ -224,7 +253,8 @@ void result()
       }
       res2.close();
 
-      ifstream res3(TString::Format("/home/ovtin/development/LYSO/out/lyso30plus_res_%d-%d.dat",y1,y2).Data());
+      //ifstream res3(TString::Format("/home/ovtin/development/LYSO/out/lyso30plus_res_%d-%d.dat",y1,y2).Data());
+      ifstream res3(TString::Format("/home/ovtin/development/LYSO/out/out1_trh%.2f/lyso30plus(%d-%d)_CanvTimeDistribution.root_res_.dat",trh,y1,y2).Data());
       string s3;
       while( getline(res3, s3) )
       {
@@ -248,13 +278,21 @@ void result()
       gr4->SetMarkerColor(k);
       gr4->SetLineWidth(2);
       gr4->SetLineColor(k);
-      gr4->SetTitle("Total");
-      gr4->SetName("Total");
+      //gr4->SetTitle("Total");
+      TString legthr;
+      legthr.Form("%.2f", trh);
+      gr4->SetName(legthr);
       gr4->GetXaxis()->SetTitle("Angle");
       gr4->GetYaxis()->SetTitle("#sigma, ns");
       gr4->GetYaxis()->SetRangeUser(0., 1.2);
-      if(i==0) gr4->Draw("APL sames");
+      //if(i==0) gr4->Draw("APL sames");
+      if(j==0) gr4->Draw("APL sames");
       gr4->Draw("PL sames");
+
+      //auto legend = new TLegend(0.1,0.7,0.48,0.9);
+      TString legtext="threshold " + legthr;
+      legend->AddEntry(gr4,legtext);
+      //legend->Draw("SAME");
 
       c->cd(8);
       TGraphErrors* gr4Mean=new TGraphErrors(vecangle.size(),&vecangle[0],&Mean[0],0,&Mean_Error[0]);
@@ -263,12 +301,13 @@ void result()
       gr4Mean->SetMarkerColor(k);
       gr4Mean->SetLineWidth(2);
       gr4Mean->SetLineColor(k);
-      gr4Mean->SetTitle("Total");
-      gr4Mean->SetName("Total");
+      //gr4Mean->SetTitle("Total");
+      //gr4Mean->SetName("Total");
       gr4Mean->GetXaxis()->SetTitle("Angle");
       gr4Mean->GetYaxis()->SetTitle("Mean, ns");
-      gr4Mean->GetYaxis()->SetRangeUser(4., 10);
-      if(i==0) gr4Mean->Draw("APL sames");
+      gr4Mean->GetYaxis()->SetRangeUser(-2, 7);
+      //if(i==0) gr4Mean->Draw("APL sames");
+      if(j==0) gr4Mean->Draw("APL sames");
       gr4Mean->Draw("PL sames");
  
       Ycoor.clear(); 
@@ -278,8 +317,10 @@ void result()
       Mean.clear(); 
       Mean_Error.clear();  
       vecangle.clear();     
-      c->Modified();
-      c->Update();
   }
-
+ }
+      c->cd(7);
+      legend->Draw("");
+      c->cd(8);
+      legend->Draw("");
 }
