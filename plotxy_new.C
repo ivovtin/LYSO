@@ -121,6 +121,67 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
      gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-05-00/gem_2019-06-07_20-05.root");
      sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_20-05-00/sipm2019-06-07_20-05.root");
     }
+
+
+   if(name=="quartzzero")
+    { 
+     //data from MCP
+     exbeamdata->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-31-49/mcpquartz2019-07-02_17-31.root");
+     exbeamdata->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-39-53/mcpquartz2019-07-02_17-39.root");
+     exbeamdata->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-46-46/mcpquartz2019-07-02_17-46.root");
+     exbeamdata->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-52-12/mcpquartz2019-07-02_17-52.root");
+     exbeamdata->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-56-31/mcpquartz2019-07-02_17-56.root");
+ 
+     daq->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-31-49/2019-07-02_17-31.root");
+     daq->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-39-53/2019-07-02_17-39.root");
+     daq->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-46-46/2019-07-02_17-46.root");
+     daq->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-52-12/2019-07-02_17-52.root");
+     daq->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-56-31/2019-07-02_17-56.root");
+ 
+     gem->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-31-49/gem_2019-07-02_17-31.root");
+     gem->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-39-53/gem_2019-07-02_17-39.root");
+     gem->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-46-46/gem_2019-07-02_17-46.root");
+     gem->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-52-12/gem_2019-07-02_17-52.root");
+     gem->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-56-31/gem_2019-07-02_17-56.root");
+
+     //data from SIPM
+     sipm->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-31-49/sipm2019-07-02_17-31.root");
+     sipm->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-39-53/sipm2019-07-02_17-39.root");
+     sipm->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-46-46/sipm2019-07-02_17-46.root");
+     sipm->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-52-12/sipm2019-07-02_17-52.root");
+     sipm->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_17-56-31/sipm2019-07-02_17-56.root");
+    }
+ 
+    if(name=="quartz30plus")
+    { 
+     //data from MCP
+     exbeamdata->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-33-02/mcpquartz2019-07-02_19-33.root");
+     exbeamdata->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-40-30/mcpquartz2019-07-02_19-40.root");
+     exbeamdata->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-46-16/mcpquartz2019-07-02_19-46.root");
+     exbeamdata->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-51-22/mcpquartz2019-07-02_19-51.root");
+     exbeamdata->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-57-06/mcpquartz2019-07-02_19-57.root");
+ 
+     daq->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-33-02/2019-07-02_19-33.root");
+     daq->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-40-30/2019-07-02_19-40.root");
+     daq->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-46-16/2019-07-02_19-46.root");
+     daq->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-51-22/2019-07-02_19-51.root");
+     daq->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-57-06/2019-07-02_19-57.root");
+ 
+     gem->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-33-02/gem_2019-07-02_19-33.root");
+     gem->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-40-30/gem_2019-07-02_19-40.root");
+     gem->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-46-16/gem_2019-07-02_19-46.root");
+     gem->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-51-22/gem_2019-07-02_19-51.root");
+     gem->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-57-06/gem_2019-07-02_19-57.root");
+
+     //data from SIPM
+     sipm->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-33-02/sipm2019-07-02_19-33.root");
+     sipm->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-40-30/sipm2019-07-02_19-40.root");
+     sipm->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-46-16/sipm2019-07-02_19-46.root");
+     sipm->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-51-22/sipm2019-07-02_19-51.root");
+     sipm->Add("/home/ovtin/development/LYSO/2019-07-02/2019-07-02_19-57-06/sipm2019-07-02_19-57.root");
+    }
+ 
+  
  
     exbeamdata -> Print();    
     //Friend tree exbeamdata from MCP with gem, daq, sipm
