@@ -9,7 +9,7 @@ TF1* Init_Aprox(Int_t num, const char* name) {
 	return f;
 }
 
-void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t y2, Float_t threshold) {
+void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t y2, Float_t threshold, bool verbose) {
     
     gStyle->SetOptStat(1);
     //gStyle->SetOptFit(1);
@@ -29,22 +29,26 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     if(name=="lyso30minus")
     { 
      //data from MCP
+     exbeamdata->Add("/home/ovtin/development/LYSO/2019-06-07/2019-06-07_18-37-52/mcplyso2019-06-07_18-37.root");
      exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_18-53-23/mcplyso2019-06-07_18-53.root");
      exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-00-52/mcplyso2019-06-07_19-00.root");
      exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-05-12/mcplyso2019-06-07_19-05.root");
      exbeamdata->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-10-16/mcplyso2019-06-07_19-10.root");
  
+     daq->Add("/home/ovtin/development/LYSO/2019-06-07/2019-06-07_18-37-52/2019-06-07_18-37.root");
      daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_18-53-23/2019-06-07_18-53.root");
      daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-00-52/2019-06-07_19-00.root");
      daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-05-12/2019-06-07_19-05.root");
      daq->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-10-16/2019-06-07_19-10.root");
  
+     gem->Add("/home/ovtin/development/LYSO/2019-06-07/2019-06-07_18-37-52/gem_2019-06-07_18-37.root");
      gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_18-53-23/gem_2019-06-07_18-53.root");
      gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-00-52/gem_2019-06-07_19-00.root");
      gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-05-12/gem_2019-06-07_19-05.root");
      gem->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-10-16/gem_2019-06-07_19-10.root");
 
      //data from SIPM
+     sipm->Add("/home/ovtin/development/LYSO/2019-06-07/2019-06-07_18-37-52/sipm2019-06-07_18-37.root");
      sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_18-53-23/sipm2019-06-07_18-53.root");
      sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-00-52/sipm2019-06-07_19-00.root");
      sipm->Add("/home/chizhik/root/2019-06-07_LYSO/2019-06-07_19-05-12/sipm2019-06-07_19-05.root");
@@ -195,6 +199,8 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     TString y_boundRight;
     y_boundRight.Form("%d", y2);
 
+    TString x_boundLeft, x_boundRight;
+
     //create Canvas
     TCanvas* CanvGeom = new TCanvas("CanvGeom", "Geometry(" + y_boundLeft + " - " + y_boundRight + ")", 1500, 600, 600, 600);
     CanvGeom -> Divide(2, 4);
@@ -206,7 +212,7 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     //create histograms for output
     TH2F* xy1 = new TH2F("xy1", "GEM1 hits", 140, 0, 140, 40, 0, 40);
     TH2F* xy2 = new TH2F("xy2", "GEM2 hits", 140, 0, 140, 40, 0, 40);
-    TH2F* xys = new TH2F("xys", "GEM hits with SiPM", 140, 0, 140, 40, 0, 40); //Need??//
+    TH2F* xys = new TH2F("xys", "GEM hits with SiPM", 30, 30, 60, 20, 10, 30); //Need??//
     TH2F* xyev = new TH2F("xyev", "GEM hits per Event", 140, 0, 140, 40, 0, 40);
     TH1F* htrg1 = new TH1F("htrg1", "MCP PMT spectra", 4096, 0, 4096);
     TH1F* htrg2 = new TH1F("htrg2", "MCP PMT spectra", 4096, 0, 4096);
@@ -215,18 +221,23 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     TH1F* Time = new TH1F("Time", "Time of registration (MCP-SiPM)", 6000, -10.005, 10.005);
     //TH1F* Time = new TH1F("Time", "Time of registration (MCP-SiPM)", 500, -10.005, 10.005);
     TH1F* TimeDistributionTriggers  =  new TH1F("TimeDistributionTriggers", "Time distribution between triggers MCP", 2001, -10.005, 10.005);
-    TH2F* TimeVSx = new TH2F("TimeVSx", "", 100, 0, 100, 100, 0, 10);
-    TH2F* TimeVSy = new TH2F("TimeVSy", "", 100, 0, 100, 100, 0, 10);
-    TH2F* TimeVSAmplitude = new TH2F("TimeVSAmplitude", "Time VS Amplitude", 10000, 1700, 2400, 20, 3, 4);
+    TH2F* TimeVSx = new TH2F("TimeVSx", "", 30, 30, 60, 70, 0, 7);
+    TH2F* TimeVSy = new TH2F("TimeVSy", "", 20, 10, 30, 70, 0, 7);
+    TH2F* TimeVSAmplitude = new TH2F("TimeVSAmplitude", "Time VS Amplitude", 2000, 0, 2000, 100, -3, 3);
     TH2F* xyf = new TH2F("xyf", "pixels", 40, 40, 80, 40, 0, 40);
 
     //======================
    //selection conditions for trgMCP and DAQ
     TString Conditions_1 = "(exbeamdata.chtrg2r.ped - exbeamdata.chtrg2r.min) > 300 && (exbeamdata.chtrg2r.ped - exbeamdata.chtrg2r.min) < 900 && (exbeamdata.chtrg1r.ped - exbeamdata.chtrg1r.min) > 300 && (exbeamdata.chtrg1r.ped - exbeamdata.chtrg1r.min) < 900 && daq.lecroy2249.ch0 > 800 && daq.lecroy2249.ch0 < 1600";
     //selection conditions for GEM
-    TString Conditions_coor1 = "detClusters.x[2] > 36 &&  detClusters.x[2] < 48 && detClusters.y[2] >" + y_boundLeft + " &&  detClusters.y[2] <" + y_boundRight;
+    TString Conditions_coor1;
+    //Conditions_coor1 = "detClusters.x[2] > 36 &&  detClusters.x[2] < 48 && detClusters.y[2] >" + y_boundLeft + " &&  detClusters.y[2] <" + y_boundRight;
+    if(name=="lysozero")Conditions_coor1 = "detClusters.x[2] > 41 &&  detClusters.x[2] < 44 && detClusters.y[2] > 15 &&  detClusters.y[2] < 27";
+    if(name=="lyso30plus")Conditions_coor1 = "detClusters.x[2] > 42 &&  detClusters.x[2] < 45 && detClusters.y[2] > 15  &&  detClusters.y[2] < 20";
+    if(name=="lyso30minus")Conditions_coor1 = "detClusters.x[2] > 43 &&  detClusters.x[2] < 46 && detClusters.y[2] > 15 && detClusters.y[2] < 21";
     TString Conditions_coor2 = "detClusters.x[3] > 64 &&  detClusters.x[3] < 76 && detClusters.y[3] > 10 && detClusters.y[3] < 28";
-    TString Conditions_2 = "(exbeamdata.ch1r.ped-exbeamdata.ch1r.min)>300 && (sipm.ch1r.max-sipm.ch1r.ped)>700"; 
+    TString Conditions_2 = "(exbeamdata.ch1r.ped-exbeamdata.ch1r.min)>300 && (exbeamdata.ch1r.ped-exbeamdata.ch1r.min)<900 && (sipm.ch1r.max-sipm.ch1r.ped)>500 && (sipm.ch1r.max-sipm.ch1r.ped)<1150 && (exbeamdata.ch1r.tmin-exbeamdata.chtrg2r.tmin)/5<10 && (sipm.ch1r.tmax-sipm.chtrg2r.tmin)/5<64"; 
+    //TString Conditions_2 = "(exbeamdata.ch1r.ped-exbeamdata.ch1r.min)>300"; 
     //TString Conditions_all = Conditions_1 + " && " + Conditions_2 + " && "+ Conditions_coor1 + "&&" + Conditions_coor2;
     TString Conditions_all = Conditions_1 + " && " + Conditions_2 + " && "+ Conditions_coor1;
     //TString Conditions_all = Conditions_1 + " && " + Conditions_coor1;
@@ -329,11 +340,10 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
  	    		 funtrg2 -> SetParameter(0, pedtrg2);
             		 funtrg2 -> SetParameter(1, -2000);
 
-			 Int_t Bin2trg1=154.;
-                         for(Int_t Bin1trg1=150.; Bin1trg1<1024.; Bin1trg1++)
+			 Int_t Bin2trg1=220.;
+                         for(Bin2trg1; Bin2trg1<1024.; Bin2trg1++)
                          { 
-                           Bin2trg1++;
-			   if(  (amptrg1 -> GetBinContent(Bin2trg1) / amptrg1 -> GetBinContent(Bin1trg1) ) <= 0.9890 )
+			   if(  (amptrg1 -> GetBinContent(Bin2trg1) / pedtrg1 ) <= 0.9890 )
 			   {
      			     break;
 			   } 
@@ -351,11 +361,10 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
                          Int_t FitBin2trg1=Bin3trg1-2.5;         
             		 amptrg1 -> Fit(funtrg, "W", "S", FitBin1trg1/5., FitBin2trg1/5.);     //fit in range  
 
-			 Int_t Bin2trg2=154.;
-                         for(Int_t Bin1trg2=150.; Bin1trg2<1024.; Bin1trg2++)
+			 Int_t Bin2trg2=220.;
+                         for(Bin2trg2; Bin2trg2<1024.; Bin2trg2++)
                          { 
-                           Bin2trg2++;
-			   if(  (amptrg2 -> GetBinContent(Bin2trg2) / amptrg2 -> GetBinContent(Bin1trg2) ) <= 0.9890 )
+			   if(  (amptrg2 -> GetBinContent(Bin2trg2) / pedtrg2 ) <= 0.9890 )
 			   {
      			     break;
 			   } 
@@ -373,21 +382,22 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
                          Int_t FitBin2trg2=Bin3trg2-2.5; 
             		 amptrg2 -> Fit(funtrg2, "W", "S", FitBin1trg2/5., FitBin2trg2/5.);     //fit in range  
                          //we find the solution to the intersection of lines: y=[0]+[1]*x and y=const
-            		 Float_t tcrtrg1 = (-threshold * (pedtrg1 - mintrg) + pedtrg1 - funtrg -> GetParameter(0)) / (funtrg -> GetParameter(1));
-	    		 Float_t tcrtrg2 = (-threshold * (pedtrg2 - mintrg2) + pedtrg2 - funtrg2 -> GetParameter(0)) / (funtrg2 -> GetParameter(1));
+             		 //Float_t tcrtrg1 = (-threshold * (pedtrg1 - mintrg) + pedtrg1 - funtrg -> GetParameter(0)) / (funtrg -> GetParameter(1));
+	    		 //Float_t tcrtrg2 = (-threshold * (pedtrg2 - mintrg2) + pedtrg2 - funtrg2 -> GetParameter(0)) / (funtrg2 -> GetParameter(1));
+            		 Float_t tcrtrg1 = (-threshold * (pedtrg1 - amptrg1->GetBinContent(FitBin2trg1)) + pedtrg1 - funtrg -> GetParameter(0)) / (funtrg -> GetParameter(1));
+	    		 Float_t tcrtrg2 = (-threshold * (pedtrg2 - amptrg2->GetBinContent(FitBin2trg2)) + pedtrg2 - funtrg2 -> GetParameter(0)) / (funtrg2 -> GetParameter(1));
             		 //cout<<"-threshold * (pedtrg2 - mintrg2) + pedtrg2="<<-threshold * (pedtrg2 - mintrg2) + pedtrg2<<"\t"<<"Event="<<i<<endl;
-            		 cout<<"tcrtrg1="<<tcrtrg1<<"\t"<<"Event="<<i<<endl;
-            		 cout<<"tcrtrg2="<<tcrtrg2<<"\t"<<"Event="<<i<<endl;
+            		 if(verbose)cout<<"tcrtrg1="<<tcrtrg1<<"\t"<<"Event="<<i<<endl;
+            		 if(verbose)cout<<"tcrtrg2="<<tcrtrg2<<"\t"<<"Event="<<i<<endl;
 
  	                 //time of MCP	
 			 fun -> SetParameter(0, ped);
             		 fun -> SetParameter(1, -200);
                          //
-			 Int_t Bin2mcp=154.;
-                         for(Int_t Bin1mcp=150.; Bin1mcp<1024.; Bin1mcp++)
-                         { 
-                           Bin2mcp++;
-			   if(  (amp -> GetBinContent(Bin2mcp) / amp -> GetBinContent(Bin1mcp) ) <= 0.9890 )
+			 Int_t Bin2mcp=260;
+                         for(Bin2mcp; Bin2mcp<1024.; Bin2mcp++)
+                        { 
+			   if(  (amp -> GetBinContent(Bin2mcp) / ped ) <= 0.9885 )
 			   {
      			     break;
 			   } 
@@ -411,7 +421,7 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
                          Float_t tcr = (-threshold * (ped - amp -> GetBinContent(Bin3mcp)) + ped - fun -> GetParameter(0)) / (fun -> GetParameter(1));
             	         //cout<<"-threshold * (ped - min) + ped="<<-threshold * (ped - amp -> GetBinContent(Bin3mcp)) + ped<<"\t"<<"Event="<<i<<endl;
             	         //cout<<"-threshold * (ped - min) + ped="<<-threshold * (ped - min) + ped<<"\t"<<"Event="<<i<<endl;
-            		 cout<<"tcr="<<tcr<<"\t"<<"Event="<<i<<endl;
+            		 if(verbose)cout<<"tcr="<<tcr<<"\t"<<"Event="<<i<<endl;
  
            		 //time of SIPM 		 
 			 CanvAmp -> cd(5);
@@ -423,7 +433,7 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
           	         Int_t maxbinsipm = ampsi -> GetMaximumBin();
                          Float_t binContent = ampsi -> GetBinContent(maxbinsipm);
 		         //while ( (ped_Si + 4) < binContent )
-		         while ( (ped_Si + 6) < binContent )
+		         while ( (ped_Si + 5) < binContent )
 			 {
 			  j4++;
                           FitBin1sipm = maxbinsipm-j4;
@@ -432,14 +442,14 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
                          
                          Int_t Bin3sipm=FitBin1sipm; 
                          Int_t FitBin2sipm;
-                         FitBin2sipm=FitBin1sipm+15;
+                         FitBin2sipm=FitBin1sipm+8;
         		 ampsi -> Fit(funsi, "W", "S", (FitBin1sipm - 0.5) / 5., FitBin2sipm/5.);
+			 //Float_t tcr_Si = (-threshold * (ped_Si - 2720) + ped_Si - funsi -> GetParameter(0)) / (funsi-> GetParameter(1));
 			 Float_t tcr_Si = (-threshold * (ped_Si - ampsi -> GetBinContent(FitBin2sipm)) + ped_Si - funsi -> GetParameter(0)) / (funsi-> GetParameter(1));
-			 //Float_t tcr_Si = (-0.30 * (ped_Si - ampsi -> GetBinContent(FitBin2sipm)) + ped_Si - funsi -> GetParameter(0)) / (funsi-> GetParameter(1));
-            		 cout<<"tcr_Si="<<tcr_Si<<"\t"<<"Event="<<i<<endl;
+            		 if(verbose)cout<<"tcr_Si="<<tcr_Si<<"\t"<<"Event="<<i<<endl;
             		 //cout<<"-threshold * (ped_Si - ampsi -> GetBinContent(FitBin2sipm)) + ped_Si="<<-threshold * (ped_Si - ampsi -> GetBinContent(FitBin2sipm)) + ped_Si<<"\t"<<"Event="<<i<<endl;
             		 //cout<<"-threshold * (ped_Si - max_Si) + ped_Si="<<-threshold * (ped_Si - max_Si) + ped_Si<<"\t"<<"Event="<<i<<endl;
-            		 cout<<"dt="<<tcr-tcr_Si<<"\t"<<"Event="<<i<<endl;
+            		 if(verbose)cout<<"dt="<<tcr-tcr_Si<<"\t"<<"Event="<<i<<endl;
 
                          //======================
 
@@ -459,8 +469,8 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
 			 htsi -> Fill(tcr_Si - tcrtrg2);
 
             	         //cout << "dT=" << (tcr - tcrtrg1) << endl;
-            		 if ((tcr - tcrtrg1) < 15 && (tcr - tcrtrg1) > -2) {
-                	 	dtvsxy -> Fill(xyev -> GetMean(1), xyev -> GetMean(2), tcr - tcrtrg1);
+            		 if ((tcr - tcrtrg2) < 15 && (tcr - tcrtrg2) > -2) {
+                	 	dtvsxy -> Fill(xyev -> GetMean(1), xyev -> GetMean(2), tcr - tcrtrg2);
             	  	 }
 
                          //time between Trgs MCP
@@ -468,9 +478,11 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
 		         //time between MCP and SIPM
 			 Time -> Fill(tcr - tcr_Si);
        		   	 //in CanvGeom
-  	    		 TimeVSx -> Fill(xyev -> GetMean(1), tcr - tcrtrg1);
-	    		 TimeVSy -> Fill(xyev -> GetMean(2), tcr - tcrtrg1);
-	                 TimeVSAmplitude -> Fill(mintrg, tcrtrg1 - tcrtrg2);
+  	    		 TimeVSx -> Fill(xyev -> GetMean(1), tcr_Si - tcrtrg2);
+	    		 TimeVSy -> Fill(xyev -> GetMean(2), tcr_Si - tcrtrg2);
+	                 //TimeVSAmplitude -> Fill(mintrg, tcrtrg1 - tcrtrg2);
+	                 TimeVSAmplitude -> Fill(max_Si-ped_Si, tcr_Si - tcrtrg2);
+                         //cout<<"max_Si="<<max_Si<<"\t"<<"tcr_Si - tcrtrg2="<<tcr_Si-tcrtrg2<<endl;
 		 }
          }
     	 printf("%d\r",i); fflush(stdout);
@@ -607,7 +619,23 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     CanvGeom -> cd(3);
     xys -> Draw("text, colz");
     xyf -> Draw("box, same");
-
+    TLine* xysb1 = new TLine(41, 15, 41, 27);
+    TLine* xysb2 = new TLine(44, 15, 44, 27);
+    TLine* xysb3 = new TLine(41, 15, 44, 15);
+    TLine* xysb4 = new TLine(41, 27, 44, 27);
+    xysb1->SetLineColor(kRed);
+    xysb2->SetLineColor(kRed);
+    xysb3->SetLineColor(kRed);
+    xysb4->SetLineColor(kRed);
+    xysb1->SetLineWidth(2);
+    xysb2->SetLineWidth(2);
+    xysb3->SetLineWidth(2);
+    xysb4->SetLineWidth(2);
+    xysb1 -> Draw("same");
+    xysb2 -> Draw("same");
+    xysb3 -> Draw("same");
+    xysb4 -> Draw("same");
+ 
     CanvAmp -> cd(6);
     ampavg->GetXaxis()->SetTitle("Time, ns");
     ampavg -> Draw("");
@@ -615,13 +643,13 @@ void plotxy_new(TString name, Int_t nev, Int_t nev1, Int_t nev2, Int_t y1, Int_t
     ampsiavg->GetXaxis()->SetTitle("Time, ns");
     ampsiavg -> Draw("");
     CanvGeom -> cd(4);    
-    TimeVSx -> Draw("");
+    TimeVSx -> Draw("colz");
     CanvGeom -> cd(5);
-    TimeVSy -> Draw("");
+    TimeVSy -> Draw("colz");
     CanvTimeDistribution -> cd(3);
     TimeDistributionTriggers -> Draw("");
     CanvGeom -> cd(6);
-    TimeVSAmplitude -> Draw("");
+    TimeVSAmplitude -> Draw("colz");
 
     CanvTimeDistribution -> cd(4);
     TF1* Gaus = new TF1("Gaus", "[0] * exp(-0.5*pow((x-[1])/[2],2))", -10, 10);

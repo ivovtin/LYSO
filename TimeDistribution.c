@@ -2,6 +2,7 @@
 void TimeDistribution() {
 	TCanvas* c = new TCanvas("c", "Canvas",1200,1000);
 	//std::ifstream infile("lyso0.50.list");
+	//std::ifstream infile("test.list");
 	std::ifstream infile("lyso0.30_single.list");
 	TString T;
         Int_t n=15;
@@ -18,31 +19,35 @@ void TimeDistribution() {
          	TFile* FileToRead = new TFile(T, "READ");
 		FileToRead -> ls();
 		TCanvas* CanvTimeDistribution = (TCanvas*)FileToRead -> Get("CanvTimeDistribution");
-		//TPad* Pad = (TPad*)CanvTimeDistribution -> GetPad(4);
+		TPad* Pad = (TPad*)CanvTimeDistribution -> GetPad(4);
 		//TPad* Pad = (TPad*)CanvTimeDistribution -> GetPad(1);
-		TPad* Pad = (TPad*)CanvTimeDistribution -> GetPad(2);
-		//TH1F* Time = (TH1F*)Pad -> GetPrimitive("Time");
+		//TPad* Pad = (TPad*)CanvTimeDistribution -> GetPad(2);
+		TH1F* Time = (TH1F*)Pad -> GetPrimitive("Time");
 		//TH1F* Time = (TH1F*)Pad -> GetPrimitive("ht");
-		TH1F* Time = (TH1F*)Pad -> GetPrimitive("htsi");
+		//TH1F* Time = (TH1F*)Pad -> GetPrimitive("htsi");
 		c->cd();
                 gStyle->SetOptStat(1);
                 gStyle->SetOptFit(1);
-                Time->Rebin(2);
+                //Time->Rebin(2);
+                Time->Rebin(10);
                 Time->GetXaxis()->SetRangeUser(-5.,10.);
                 Time->GetXaxis()->SetTitle("Time, ns");
 	        Time -> Draw("");
 		
-                TF1* Gaus = new TF1("Gaus", "[0] * exp(-0.5*pow((x-[1])/[2],2))", 0, 3);
+                TF1* Gaus = new TF1("Gaus", "[0] * exp(-0.5*pow((x-[1])/[2],2))", 2.5, 5.5);
     	        Gaus -> SetParLimits(0, 0, 1000);
-                Gaus -> SetParLimits(1, 0, 3);
-    		Gaus -> SetParLimits(2, 0.001, 1);
-    		Gaus -> SetParameter(0, 1);
+                Gaus -> SetParLimits(1, 2.5, 5.5);
+    		Gaus -> SetParLimits(2, 0.001, 2);
+    		//Gaus -> SetParLimits(3, 1, 100);
+    		Gaus -> SetParameter(0, 10);
     		Gaus -> SetParameter(1, Time -> GetMean());
-    		Gaus -> SetParameter(2, 0.01);
+    		Gaus -> SetParameter(2, 0.1);
+    		//Gaus -> SetParameter(3, 5);
                 // give the parameters meaningful names
                 Gaus->SetParNames ("Constant","Mean","Sigma");               
  
-		Time-> Fit(Gaus, "W", "S", 0, 3);
+		Time-> Fit(Gaus, "W", "S", 2.5, 5.5);
+		//Time-> Fit(Gaus, "", "S", 2.5, 5.5);
 		Mean[i] = Gaus -> GetParameter(1);
 		Mean_Error[i] = Gaus -> GetParError(1);
 		Sigma[i] = Gaus -> GetParameter(2);

@@ -197,7 +197,7 @@ void result()
   std::vector< float > vecangle;
   Int_t k=1;
   Float_t trh;
-  for( int j=0; j<3; j++ )
+  for( int j=0; j<2; j++ )
   {
      //if(j==0){trh=0.20;};
      //if(j==1){trh=0.25;};
@@ -226,8 +226,8 @@ void result()
         iss >> var1 >> var2 >> var3 >> var4;
         Mean.push_back(var1);
         Mean_Error.push_back(var2);
-        Sigma.push_back(var3);
-        Sigma_Error.push_back(var4);
+        Sigma.push_back(var3*1000);
+        Sigma_Error.push_back(var4*1000);
         Ycoor.push_back((y1+y2)/2.);
         Ycoor_Error.push_back(0.);
         angle=-30;
@@ -244,8 +244,8 @@ void result()
         iss >> var1 >> var2 >> var3 >> var4;
         Mean.push_back(var1);
         Mean_Error.push_back(var2);
-        Sigma.push_back(var3);
-        Sigma_Error.push_back(var4);
+        Sigma.push_back(var3*1000);
+        Sigma_Error.push_back(var4*1000);
         Ycoor.push_back((y1+y2)/2.);
         Ycoor_Error.push_back(0.);
         angle=0;
@@ -262,8 +262,8 @@ void result()
         iss >> var1 >> var2 >> var3 >> var4;
         Mean.push_back(var1);
         Mean_Error.push_back(var2);
-        Sigma.push_back(var3);
-        Sigma_Error.push_back(var4);
+        Sigma.push_back(var3*1000);
+        Sigma_Error.push_back(var4*1000);
         Ycoor.push_back((y1+y2)/2.);
         Ycoor_Error.push_back(0.);
         angle=30;
@@ -276,21 +276,21 @@ void result()
       gr4->SetMarkerStyle(21);
       gr4->SetMarkerSize(0.8);
       gr4->SetMarkerColor(k);
-      gr4->SetLineWidth(2);
+      gr4->SetLineWidth(1);
       gr4->SetLineColor(k);
       //gr4->SetTitle("Total");
       TString legthr;
-      legthr.Form("%.2f", trh);
+      legthr.Form("%.2f", trh*100);
       gr4->SetName(legthr);
       gr4->GetXaxis()->SetTitle("Angle");
-      gr4->GetYaxis()->SetTitle("#sigma, ns");
-      gr4->GetYaxis()->SetRangeUser(0., 1.2);
+      gr4->GetYaxis()->SetTitle("#sigma, ps");
+      gr4->GetYaxis()->SetRangeUser(130., 290.);
       //if(i==0) gr4->Draw("APL sames");
       if(j==0) gr4->Draw("APL sames");
       gr4->Draw("PL sames");
 
       //auto legend = new TLegend(0.1,0.7,0.48,0.9);
-      TString legtext="threshold " + legthr;
+      TString legtext="Experiment, thr " + legthr + "% (LYSO 3.5x4x50 mm, SiPM-MCP) ";
       legend->AddEntry(gr4,legtext);
       //legend->Draw("SAME");
 
@@ -319,8 +319,37 @@ void result()
       vecangle.clear();     
   }
  }
+   
+      std::vector< float > anglesim, dtsim, dtsim_er;
+      ifstream res4(TString::Format("/home/ovtin/development/LYSO/sim_res.dat").Data());
+      string s4;
+      while( getline(res4, s4) )
+      {
+        istringstream iss(s4);
+        iss >> var1 >> var2 >> var3;
+        anglesim.push_back(var1);
+        dtsim.push_back(var2*1000);
+        dtsim_er.push_back(var3*1000);
+      }
+      res4.close();
+
       c->cd(7);
+      TGraphErrors* gr4=new TGraphErrors(anglesim.size(),&anglesim[0],&dtsim[0],0,&dtsim_er[0]);
+      gr4->SetMarkerStyle(24);
+      gr4->SetMarkerSize(0.8);
+      gr4->SetMarkerColor(1);
+      gr4->SetLineWidth(1);
+      gr4->SetLineColor(1);
+      TString legtext="Simulation (LYSO 4.5x4.5x50 mm, SiPM-SiPM)";
+      legend->AddEntry(gr4,legtext);
+      gr4->SetName(legtext);
+      gr4->GetXaxis()->SetTitle("Angle");
+      gr4->GetYaxis()->SetTitle("#sigma, ps");
+      gr4->GetYaxis()->SetRangeUser(130., 290.);
+      gr4->Draw("PL sames");
+
       legend->Draw("");
+     
       c->cd(8);
       legend->Draw("");
 }
