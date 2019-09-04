@@ -3,7 +3,7 @@ void TimeDistribution() {
 	TCanvas* c = new TCanvas("c", "Canvas",1200,1000);
 	//std::ifstream infile("lyso0.50.list");
 	//std::ifstream infile("test.list");
-	std::ifstream infile("lyso0.30_single.list");
+	std::ifstream infile("lyso0.50_single.list");
 	TString T;
         Int_t n=15;
 	Double_t Mean[n];
@@ -19,7 +19,8 @@ void TimeDistribution() {
          	TFile* FileToRead = new TFile(T, "READ");
 		FileToRead -> ls();
 		TCanvas* CanvTimeDistribution = (TCanvas*)FileToRead -> Get("CanvTimeDistribution");
-		TPad* Pad = (TPad*)CanvTimeDistribution -> GetPad(4);
+		//TPad* Pad = (TPad*)CanvTimeDistribution -> GetPad(4);
+		TPad* Pad = (TPad*)CanvTimeDistribution -> GetPad(7);
 		//TPad* Pad = (TPad*)CanvTimeDistribution -> GetPad(1);
 		//TPad* Pad = (TPad*)CanvTimeDistribution -> GetPad(2);
 		TH1F* Time = (TH1F*)Pad -> GetPrimitive("Time");
@@ -34,9 +35,9 @@ void TimeDistribution() {
                 Time->GetXaxis()->SetTitle("Time, ns");
 	        Time -> Draw("");
 		
-                TF1* Gaus = new TF1("Gaus", "[0] * exp(-0.5*pow((x-[1])/[2],2))", 2.5, 5.5);
+                TF1* Gaus = new TF1("Gaus", "[0] * exp(-0.5*pow((x-[1])/[2],2))", 0.0, 5.5);
     	        Gaus -> SetParLimits(0, 0, 1000);
-                Gaus -> SetParLimits(1, 2.5, 5.5);
+                Gaus -> SetParLimits(1, 0.0, 5.5);
     		Gaus -> SetParLimits(2, 0.001, 2);
     		//Gaus -> SetParLimits(3, 1, 100);
     		Gaus -> SetParameter(0, 10);
@@ -46,8 +47,8 @@ void TimeDistribution() {
                 // give the parameters meaningful names
                 Gaus->SetParNames ("Constant","Mean","Sigma");               
  
-		Time-> Fit(Gaus, "W", "S", 2.5, 5.5);
-		//Time-> Fit(Gaus, "", "S", 2.5, 5.5);
+		Time-> Fit(Gaus, "W", "S", 0.0, 5.5);
+		//Time-> Fit(Gaus, "", "S", 2.0, 5.5);
 		Mean[i] = Gaus -> GetParameter(1);
 		Mean_Error[i] = Gaus -> GetParError(1);
 		Sigma[i] = Gaus -> GetParameter(2);
